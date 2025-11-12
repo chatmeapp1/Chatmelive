@@ -11,6 +11,14 @@ import BergabungScreen from "../screen/profile/BergabungScreen";
 /* ✅ Import Edit Profile yang benar */
 import EditProfileScreen from "../screen/profile/EditProfileScreen";
 
+/* ✅ Import Personal Profile Screens */
+import PersonalProfileScreen from "../screen/profile/PersonalProfileScreen";
+import ProfilePictureScreen from "../screen/profile/ProfilePictureScreen";
+import NicknameScreen from "../screen/profile/NicknameScreen";
+import GenderScreen from "../screen/profile/GenderScreen";
+import AgeScreen from "../screen/profile/AgeScreen";
+import SignatureScreen from "../screen/profile/SignatureScreen";
+
 const Stack = createNativeStackNavigator();
 
 export default function ProfileNavigator() {
@@ -20,6 +28,14 @@ export default function ProfileNavigator() {
 
       {/* ✅ Screen Edit Profile FIXED */}
       <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+
+      {/* ✅ Personal Profile Screens */}
+      <Stack.Screen name="PersonalProfileScreen" component={PersonalProfileScreen} />
+      <Stack.Screen name="ProfilePictureScreen" component={ProfilePictureScreen} />
+      <Stack.Screen name="NicknameScreen" component={NicknameScreen} />
+      <Stack.Screen name="GenderScreen" component={GenderScreen} />
+      <Stack.Screen name="AgeScreen" component={AgeScreen} />
+      <Stack.Screen name="SignatureScreen" component={SignatureScreen} />
 
       <Stack.Screen name="LevelScreen" component={LevelScreen} />
       <Stack.Screen name="PenggemarScreen" component={PenggemarScreen} />
