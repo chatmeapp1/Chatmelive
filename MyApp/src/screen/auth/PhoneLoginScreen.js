@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   View,
@@ -10,6 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,7 +28,7 @@ export default function PhoneLoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     if (!phone || !password) {
-      alert("Nomor telepon dan sandi wajib diisi");
+      Alert.alert("Error", "Nomor telepon dan sandi wajib diisi");
       return;
     }
 
@@ -54,7 +57,7 @@ export default function PhoneLoginScreen({ navigation }) {
       if (!contentType || !contentType.includes("application/json")) {
         const text = await res.text();
         console.error("❌ Response bukan JSON:", text.substring(0, 200));
-        alert("Server tidak merespons dengan benar. Pastikan server backend sudah jalan.");
+        Alert.alert("Error", "Server tidak merespons dengan benar. Pastikan server backend sudah jalan.");
         return;
       }
 
@@ -63,14 +66,14 @@ export default function PhoneLoginScreen({ navigation }) {
 
       if (res.ok && data.success) {
         await AsyncStorage.setItem("user_token", data.token);
-        alert(`Selamat datang ${data.user.name || "User"}`);
+        Alert.alert("Sukses", `Selamat datang ${data.user.name || "User"}`);
         navigation.replace("MainTabs");
       } else {
-        alert(data.message || "Nomor atau sandi salah");
+        Alert.alert("Login Gagal", data.message || "Nomor atau sandi salah");
       }
     } catch (err) {
       console.error("❌ Error login:", err);
-      alert(`Tidak dapat terhubung ke server:\n${err.message}\n\nPastikan server backend sudah jalan.`);
+      Alert.alert("Error", `Tidak dapat terhubung ke server:\n${err.message}\n\nPastikan server backend sudah jalan.`);
     } finally {
       setLoading(false);
     }
@@ -137,7 +140,11 @@ export default function PhoneLoginScreen({ navigation }) {
               onPress={handleLogin}
               disabled={loading}
             >
-              <Text style={styles.loginText}>{loading ? "Memproses..." : "Masuk"}</Text>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.loginText}>Masuk</Text>
+              )}
             </TouchableOpacity>
 
             <View style={styles.footer}>
@@ -256,217 +263,5 @@ const styles = StyleSheet.create({
     color: "#6A5ACD",
     fontSize: 13,
     fontWeight: "600",
-  },
-});
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import CONFIG from "../../utils/config";
-
-export default function PhoneLoginScreen({ navigation }) {
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleLogin = async () => {
-    if (!phone || !password) {
-      Alert.alert("Error", "Nomor HP dan password wajib diisi!");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await fetch(`${CONFIG.API_BASE_URL}/api/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          phone: phone.trim(),
-          password: password.trim(),
-        }),
-      });
-
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await response.text();
-        console.error("❌ Response bukan JSON:", text);
-        Alert.alert("Server Error", "Server tidak merespons dengan benar. Pastikan backend sudah running.");
-        setLoading(false);
-        return;
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        await AsyncStorage.setItem("token", data.token);
-        await AsyncStorage.setItem("user", JSON.stringify(data.user));
-        Alert.alert("Sukses", "Login berhasil!");
-        navigation.navigate("HomeScreen");
-      } else {
-        Alert.alert("Login Gagal", data.message || "Nomor HP atau password salah!");
-      }
-    } catch (error) {
-      console.error("Error login:", error);
-      Alert.alert(
-        "Error",
-        "Tidak dapat terhubung ke server. Pastikan backend sudah running di port 8000."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <LinearGradient
-      colors={["#FFB6C1", "#63EEA2", "#B3FAD5"]}
-      style={styles.container}
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={28} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Login via Nomor</Text>
-          <View style={{ width: 28 }} />
-        </View>
-
-        <View style={styles.formContainer}>
-          <Text style={styles.label}>Nomor HP</Text>
-          <View style={styles.inputContainer}>
-            <Ionicons name="call-outline" size={20} color="#666" />
-            <TextInput
-              style={styles.input}
-              placeholder="08xxxxxxxxxx"
-              placeholderTextColor="#999"
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={setPhone}
-              autoCapitalize="none"
-            />
-          </View>
-
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#666" />
-            <TextInput
-              style={styles.input}
-              placeholder="Masukkan password"
-              placeholderTextColor="#999"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              autoCapitalize="none"
-            />
-          </View>
-
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.loginButtonText}>Masuk</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate("RegisterScreen")}
-          >
-            <Text style={styles.registerText}>
-              Belum punya akun? <Text style={styles.registerLink}>Daftar</Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </LinearGradient>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 20,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#fff",
-  },
-  formContainer: {
-    flex: 1,
-    paddingHorizontal: 30,
-    paddingTop: 40,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
-    marginBottom: 10,
-    marginTop: 15,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 25,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-  },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 16,
-    color: "#333",
-  },
-  loginButton: {
-    backgroundColor: "#1E5631",
-    borderRadius: 25,
-    paddingVertical: 15,
-    alignItems: "center",
-    marginTop: 30,
-  },
-  loginButtonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  registerText: {
-    textAlign: "center",
-    marginTop: 20,
-    color: "#fff",
-    fontSize: 14,
-  },
-  registerLink: {
-    fontWeight: "700",
-    textDecoration: "underline",
   },
 });
