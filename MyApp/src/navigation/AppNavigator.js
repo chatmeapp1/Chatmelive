@@ -1,8 +1,10 @@
+
 // === AppNavigator.js ===
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import AuthNavigator from "./AuthNavigator";
 import MainTabsNavigator from "./MainTabsNavigator";
@@ -15,6 +17,26 @@ const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const token = await AsyncStorage.getItem("user_token");
+      setIsAuthenticated(!!token);
+    } catch (error) {
+      console.error("Error checking auth:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return null; // Or show a loading screen
+  }
 
   return (
     <NavigationContainer>

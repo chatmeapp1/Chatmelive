@@ -17,6 +17,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CommonActions } from "@react-navigation/native";
 import getEnvVars from "../../utils/env";
 
 const { API_URL } = getEnvVars();
@@ -66,8 +67,14 @@ export default function PhoneLoginScreen({ navigation }) {
 
       if (res.ok && data.success) {
         await AsyncStorage.setItem("user_token", data.token);
-        Alert.alert("Sukses", `Selamat datang ${data.user.name || "User"}`);
-        navigation.replace("MainTabs");
+        
+        // Reset navigation to MainTabs
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "MainTabs" }],
+          })
+        );
       } else {
         Alert.alert("Login Gagal", data.message || "Nomor atau sandi salah");
       }
