@@ -11,8 +11,7 @@ import BergabungScreen from "../screen/profile/BergabungScreen";
 /* ✅ Import Edit Profile yang benar */
 import EditProfileScreen from "../screen/profile/EditProfileScreen";
 
-/* ✅ Import Personal Profile Screens */
-import PersonalProfileScreen from "../screen/profile/PersonalProfileScreen";
+/* ✅ Import Detail Profile Screens */
 import ProfilePictureScreen from "../screen/profile/ProfilePictureScreen";
 import NicknameScreen from "../screen/profile/NicknameScreen";
 import GenderScreen from "../screen/profile/GenderScreen";
@@ -29,8 +28,7 @@ export default function ProfileNavigator() {
       {/* ✅ Screen Edit Profile FIXED */}
       <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
 
-      {/* ✅ Personal Profile Screens */}
-      <Stack.Screen name="PersonalProfileScreen" component={PersonalProfileScreen} />
+      {/* ✅ Detail Profile Screens */}
       <Stack.Screen name="ProfilePictureScreen" component={ProfilePictureScreen} />
       <Stack.Screen name="NicknameScreen" component={NicknameScreen} />
       <Stack.Screen name="GenderScreen" component={GenderScreen} />

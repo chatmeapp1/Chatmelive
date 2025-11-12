@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   View,
@@ -10,63 +11,78 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 export default function EditProfileScreen({ navigation }) {
+  const profileData = {
+    avatar: require("../../../assets/images/avatar_default.png"),
+    nickname: "GOPAY",
+    gender: "laki-laki",
+    age: 22,
+    signature: "karakteristik aku justru tanda tangan...",
+  };
+
+  const menuItems = [
+    {
+      id: 1,
+      title: "gambar profil",
+      value: null,
+      screen: "ProfilePictureScreen",
+    },
+    {
+      id: 2,
+      title: "Sebutan intim",
+      value: profileData.nickname,
+      screen: "NicknameScreen",
+    },
+    {
+      id: 3,
+      title: "jenis kelamin",
+      value: profileData.gender,
+      screen: "GenderScreen",
+    },
+    {
+      id: 4,
+      title: "usia",
+      value: profileData.age,
+      screen: "AgeScreen",
+    },
+    {
+      id: 5,
+      title: "tanda tangan pribadi",
+      value: profileData.signature,
+      screen: "SignatureScreen",
+    },
+  ];
+
   return (
     <View style={styles.container}>
-      {/* ✅ Header */}
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={26} color="#fff" />
         </TouchableOpacity>
-
         <Text style={styles.headerText}>profil pribadi</Text>
       </View>
 
-      {/* ✅ Content */}
+      {/* Content */}
       <ScrollView contentContainerStyle={styles.content}>
-        <TouchableOpacity style={styles.row}>
-          <Text style={styles.label}>gambar profil</Text>
-          <View style={styles.right}>
-            <Image
-              source={require("../../../assets/images/avatar_default.png")}
-              style={styles.avatar}
-            />
-            <Ionicons name="chevron-forward" size={20} color="#aaa" />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.row}>
-          <Text style={styles.label}>Sebutan intim</Text>
-          <View style={styles.right}>
-            <Text style={styles.val}>GOPAY</Text>
-            <Ionicons name="chevron-forward" size={20} color="#aaa" />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.row}>
-          <Text style={styles.label}>jenis kelamin</Text>
-          <View style={styles.right}>
-            <Text style={styles.val}>laki-laki</Text>
-            <Ionicons name="chevron-forward" size={20} color="#aaa" />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.row}>
-          <Text style={styles.label}>usia</Text>
-          <View style={styles.right}>
-            <Text style={styles.val}>22</Text>
-            <Ionicons name="chevron-forward" size={20} color="#aaa" />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.row}>
-          <Text style={styles.label}>tanda tangan pribadi</Text>
-          <View style={styles.right}>
-            <Text style={styles.val} numberOfLines={1}>
-              karakteristik aku justru tanda tang…
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color="#aaa" />
-          </View>
-        </TouchableOpacity>
+        {menuItems.map((item) => (
+          <TouchableOpacity 
+            key={item.id} 
+            style={styles.row}
+            onPress={() => navigation.navigate(item.screen)}
+          >
+            <Text style={styles.label}>{item.title}</Text>
+            <View style={styles.right}>
+              {item.id === 1 ? (
+                <Image source={profileData.avatar} style={styles.avatar} />
+              ) : (
+                <Text style={styles.val} numberOfLines={1}>
+                  {item.value}
+                </Text>
+              )}
+              <Ionicons name="chevron-forward" size={20} color="#aaa" />
+            </View>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
     </View>
   );
