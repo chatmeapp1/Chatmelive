@@ -58,9 +58,17 @@ Preferred communication style: Simple, everyday language.
 - Gift system with animations and coin tracking
 
 *Live Streaming*
-- Host controls for starting/stopping broadcasts
-- Integration with Agora SDK for voice communication
-- Channel-based room management
+- **Two-screen flow**: StartLiveScreen (preparation) → HostLiveScreen (active broadcast)
+- **Host features**: 
+  - Live camera preview with Agora SDK integration (v4.x API)
+  - Real-time beauty filters (whitening, ruddy, smoothness, de-highlight)
+  - Beauty panel with slider controls for live adjustments
+  - Camera flip, mic controls, and broadcast management
+- **Viewer features**:
+  - ViewerLiveScreen for watching live streams
+  - Same UI layout as host but without host controls (no beauty, mic, camera, timer)
+  - Full social interaction (chat, gifts, reactions)
+- Channel-based room management with Agora RTC
 - User join effects with VIP-tiered animations (motorcycle entry with banner)
 
 *Social Features*
