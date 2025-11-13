@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,19 +10,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useLive } from "../../context/LiveContext";
-import {
-  createAgoraRtcEngine,
-  RtcSurfaceView,
-  ChannelProfileType,
-  ClientRoleType,
-} from "react-native-agora";
-import { AGORA_APP_ID, DEFAULT_CHANNEL, DEFAULT_UID } from "../../config/Agora";
-import BeautyPanel from "./components/BeautyPanel";
 
 export default function StartLiveScreen() {
   const navigation = useNavigation();
   const { startLive } = useLive();
-  const engineRef = useRef(null);
 
   const host = {
     id: "host_1",
@@ -30,123 +21,9 @@ export default function StartLiveScreen() {
     avatar: "https://picsum.photos/id/1005/100",
   };
 
-  const [beautyPanelVisible, setBeautyPanelVisible] = useState(false);
-  const [beautyEnabled, setBeautyEnabled] = useState(true);
-  const [cameraReady, setCameraReady] = useState(false);
-  const [beautySettings, setBeautySettings] = useState({
-    lighteningLevel: 0.6,
-    rednessLevel: 0.1,
-    smoothnessLevel: 0.7,
-    sharpnessLevel: 0.0,
-  });
-
-  useEffect(() => {
-    let mounted = true;
-
-    const initCamera = async () => {
-      try {
-        const engine = createAgoraRtcEngine();
-        engineRef.current = engine;
-
-        engine.initialize({
-          appId: AGORA_APP_ID,
-          channelProfile: ChannelProfileType.ChannelProfileLiveBroadcasting,
-        });
-
-        engine.enableVideo();
-
-        engine.setBeautyEffectOptions(true, {
-          lighteningContrastLevel: 1,
-          lighteningLevel: beautySettings.lighteningLevel,
-          smoothnessLevel: beautySettings.smoothnessLevel,
-          rednessLevel: beautySettings.rednessLevel,
-          sharpnessLevel: beautySettings.sharpnessLevel,
-        });
-
-        engine.startPreview();
-
-        if (mounted) {
-          setCameraReady(true);
-        }
-      } catch (error) {
-        console.error("Error initializing camera:", error);
-      }
-    };
-
-    initCamera();
-
-    return () => {
-      mounted = false;
-      const engine = engineRef.current;
-      if (engine) {
-        try {
-          engine.stopPreview();
-          engine.release();
-        } catch (error) {
-          console.error("Error cleaning up camera:", error);
-        }
-      }
-    };
-  }, []);
-
-  const handleBeautyChange = (newSettings) => {
-    setBeautySettings(newSettings);
-    const engine = engineRef.current;
-    if (!engine) return;
-
-    try {
-      engine.setBeautyEffectOptions(beautyEnabled, {
-        lighteningContrastLevel: 1,
-        lighteningLevel: newSettings.lighteningLevel,
-        smoothnessLevel: newSettings.smoothnessLevel,
-        rednessLevel: newSettings.rednessLevel,
-        sharpnessLevel: newSettings.sharpnessLevel,
-      });
-    } catch (error) {
-      console.error("Error updating beauty settings:", error);
-    }
-  };
-
-  const toggleBeauty = () => {
-    const newBeautyState = !beautyEnabled;
-    setBeautyEnabled(newBeautyState);
-    const engine = engineRef.current;
-    if (!engine) return;
-
-    try {
-      engine.setBeautyEffectOptions(newBeautyState, {
-        lighteningContrastLevel: 1,
-        lighteningLevel: beautySettings.lighteningLevel,
-        smoothnessLevel: beautySettings.smoothnessLevel,
-        rednessLevel: beautySettings.rednessLevel,
-        sharpnessLevel: beautySettings.sharpnessLevel,
-      });
-    } catch (error) {
-      console.error("Error toggling beauty:", error);
-    }
-  };
-
-  const switchCamera = () => {
-    const engine = engineRef.current;
-    if (!engine) return;
-
-    try {
-      engine.switchCamera();
-    } catch (error) {
-      console.error("Error switching camera:", error);
-    }
-  };
+  const [isFrontCamera, setIsFrontCamera] = useState(true);
 
   const beginLive = () => {
-    const engine = engineRef.current;
-    if (engine) {
-      try {
-        engine.stopPreview();
-      } catch (error) {
-        console.error("Error stopping preview:", error);
-      }
-    }
-
     startLive({
       id: host.id,
       name: host.name,
@@ -164,12 +41,10 @@ export default function StartLiveScreen() {
 
   return (
     <View style={styles.container}>
-      {cameraReady && (
-        <RtcSurfaceView
-          style={StyleSheet.absoluteFill}
-          canvas={{ uid: 0 }}
-        />
-      )}
+      <View style={styles.cameraPlaceholder}>
+        <Text style={styles.placeholderText}>📹</Text>
+        <Text style={styles.placeholderSubtext}>Kamera akan aktif saat siaran dimulai</Text>
+      </View>
 
       <TouchableOpacity
         style={styles.closeButton}
@@ -201,22 +76,23 @@ export default function StartLiveScreen() {
       <View style={styles.toolsRow}>
         <TouchableOpacity
           style={styles.toolItem}
-          onPress={() => setBeautyPanelVisible(true)}
+          onPress={() => {
+            console.log("Beauty settings akan aktif saat siaran");
+          }}
         >
           <Ionicons name="color-wand-outline" size={26} color="#fff" />
           <Text style={styles.toolText}>Beauty</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.toolItem} onPress={switchCamera}>
+        <TouchableOpacity
+          style={styles.toolItem}
+          onPress={() => {
+            setIsFrontCamera(!isFrontCamera);
+          }}
+        >
           <Ionicons name="camera-reverse-outline" size={26} color="#fff" />
           <Text style={styles.toolText}>Reverse</Text>
         </TouchableOpacity>
       </View>
-
-      <BeautyPanel
-        visible={beautyPanelVisible}
-        onClose={() => setBeautyPanelVisible(false)}
-        onBeautyChange={handleBeautyChange}
-      />
     </View>
   );
 }
@@ -225,6 +101,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
+  },
+  cameraPlaceholder: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#1a1a1a",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  placeholderText: {
+    fontSize: 60,
+    marginBottom: 10,
+  },
+  placeholderSubtext: {
+    color: "#666",
+    fontSize: 14,
   },
   closeButton: {
     position: "absolute",
