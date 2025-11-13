@@ -94,7 +94,7 @@ export default function MainTabsNavigator() {
                 style={[styles.liveButtonWrapper, Platform.OS === "web" && { opacity: 0.5 }]}
                 onPress={() => {
                   if (Platform.OS !== "web") {
-                    
+                    navigation.navigate("StartLiveScreen");
                   }
                 }}
                 disabled={Platform.OS === "web"}
