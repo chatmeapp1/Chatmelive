@@ -4,9 +4,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle, Path } from "react-native-svg";
 import { useNavigation } from "@react-navigation/native";
 
-export default function ProfileBalance({ navigation }) {
+export default function ProfileBalance() {
+  const navigation = useNavigation();
   const scale = new Animated.Value(1);
-  const parentNavigation = navigation.getParent();
 
   const handlePressIn = () => {
     Animated.spring(scale, {
@@ -49,7 +49,7 @@ export default function ProfileBalance({ navigation }) {
         <TouchableOpacity
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          onPress={() => parentNavigation.navigate("RechargeScreen")}
+          onPress={() => navigation.navigate("RechargeScreen")}
           activeOpacity={0.9}
         >
           <LinearGradient
