@@ -13,7 +13,7 @@ import * as ImagePicker from "expo-image-picker";
 
 export default function ProfilePictureScreen({ navigation }) {
   const [avatar, setAvatar] = useState(
-    require("../../assets/images/avatar_default.png")
+    require("../../../assets/images/avatar_default.png")
   );
 
   const pickImage = async () => {
