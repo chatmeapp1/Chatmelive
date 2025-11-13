@@ -17,6 +17,7 @@ import NicknameScreen from "../screen/profile/NicknameScreen";
 import GenderScreen from "../screen/profile/GenderScreen";
 import AgeScreen from "../screen/profile/AgeScreen";
 import SignatureScreen from "../screen/profile/SignatureScreen";
+import RechargeScreen from "../screen/profile/RechargeScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -35,6 +36,7 @@ export default function ProfileNavigator() {
       <Stack.Screen name="AgeScreen" component={AgeScreen} />
       <Stack.Screen name="SignatureScreen" component={SignatureScreen} />
 
+      <Stack.Screen name="RechargeScreen" component={RechargeScreen} />
       <Stack.Screen name="LevelScreen" component={LevelScreen} />
       <Stack.Screen name="PenggemarScreen" component={PenggemarScreen} />
       <Stack.Screen name="PendapatanScreen" component={PendapatanScreen} />
