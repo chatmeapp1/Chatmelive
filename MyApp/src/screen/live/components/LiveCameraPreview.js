@@ -1,11 +1,11 @@
 // src/screen/live/components/LiveCameraPreview.js
 import React, { useEffect, useRef, useState } from "react";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import RtcEngine, {
-  RtcLocalView,
-  VideoRenderMode,
-  ChannelProfile,
-  ClientRole,
+import {
+  createAgoraRtcEngine,
+  RtcSurfaceView,
+  ChannelProfileType,
+  ClientRoleType,
 } from "react-native-agora";
 import { Ionicons } from "@expo/vector-icons";
 import { AGORA_APP_ID, DEFAULT_CHANNEL, DEFAULT_UID } from "../../../config/Agora";
@@ -21,30 +21,34 @@ export default function LiveCameraPreview({
   useEffect(() => {
     let mounted = true;
 
-    const init = async () => {
-      const engine = await RtcEngine.create(AGORA_APP_ID);
-      engineRef.current = engine;
+    const init = () => {
+      try {
+        const engine = createAgoraRtcEngine();
+        engineRef.current = engine;
 
-      // Profile broadcaster
-      await engine.setChannelProfile(ChannelProfile.LiveBroadcasting);
-      await engine.setClientRole(ClientRole.Broadcaster);
+        engine.initialize({
+          appId: AGORA_APP_ID,
+          channelProfile: ChannelProfileType.ChannelProfileLiveBroadcasting,
+        });
 
-      // Video on
-      await engine.enableVideo();
-      await engine.startPreview();
+        engine.enableVideo();
+        engine.startPreview();
 
-      // Default: Beauty ON
-      await engine.setBeautyEffectOptions(true, {
-        lighteningContrastLevel: 1,   // 0: low, 1: normal, 2: high
-        lighteningLevel: 0.6,         // 0.0 - 1.0
-        smoothnessLevel: 0.7,         // 0.0 - 1.0
-        rednessLevel: 0.1,            // 0.0 - 1.0
-      });
+        engine.setBeautyEffectOptions(true, {
+          lighteningContrastLevel: 1,
+          lighteningLevel: 0.6,
+          smoothnessLevel: 0.7,
+          rednessLevel: 0.1,
+        });
 
-      // Join channel (tanpa token untuk dev cepat)
-      await engine.joinChannel(null, channelName, null, uid);
+        engine.joinChannel(null, channelName, uid, {
+          clientRoleType: ClientRoleType.ClientRoleBroadcaster,
+        });
 
-      if (mounted && onReady) onReady();
+        if (mounted && onReady) onReady();
+      } catch (error) {
+        console.error("Error initializing Agora:", error);
+      }
     };
 
     init();
@@ -52,23 +56,24 @@ export default function LiveCameraPreview({
     return () => {
       mounted = false;
       const e = engineRef.current;
-      (async () => {
+      if (e) {
         try {
-          if (!e) return;
-          await e.stopPreview();
-          await e.leaveChannel();
-          e.destroy();
-        } catch {}
-      })();
+          e.stopPreview();
+          e.leaveChannel();
+          e.release();
+        } catch (error) {
+          console.error("Error cleaning up Agora:", error);
+        }
+      }
     };
   }, [channelName, uid]);
 
-  const toggleBeauty = async () => {
+  const toggleBeauty = () => {
     const next = !beautyOn;
     setBeautyOn(next);
     const e = engineRef.current;
     if (!e) return;
-    await e.setBeautyEffectOptions(next, {
+    e.setBeautyEffectOptions(next, {
       lighteningContrastLevel: 1,
       lighteningLevel: 0.6,
       smoothnessLevel: 0.7,
@@ -76,19 +81,18 @@ export default function LiveCameraPreview({
     });
   };
 
-  const switchCam = async () => {
+  const switchCam = () => {
     const e = engineRef.current;
     if (!e) return;
-    await e.switchCamera();
+    e.switchCamera();
   };
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       {/* Preview kamera lokal (full screen) */}
-      <RtcLocalView.SurfaceView
+      <RtcSurfaceView
         style={StyleSheet.absoluteFill}
-        channelId={channelName}
-        renderMode={VideoRenderMode.Hidden}
+        canvas={{ uid: 0 }}
       />
 
       {/* Mini controls (kanan-bawah) */}

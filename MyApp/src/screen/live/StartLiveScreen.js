@@ -10,11 +10,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useLive } from "../../context/LiveContext";
-import RtcEngine, {
-  RtcLocalView,
-  VideoRenderMode,
-  ChannelProfile,
-  ClientRole,
+import {
+  createAgoraRtcEngine,
+  RtcSurfaceView,
+  ChannelProfileType,
+  ClientRoleType,
 } from "react-native-agora";
 import { AGORA_APP_ID, DEFAULT_CHANNEL, DEFAULT_UID } from "../../config/Agora";
 import BeautyPanel from "./components/BeautyPanel";
@@ -45,14 +45,17 @@ export default function StartLiveScreen() {
 
     const initCamera = async () => {
       try {
-        const engine = await RtcEngine.create(AGORA_APP_ID);
+        const engine = createAgoraRtcEngine();
         engineRef.current = engine;
 
-        await engine.setChannelProfile(ChannelProfile.LiveBroadcasting);
-        await engine.setClientRole(ClientRole.Broadcaster);
-        await engine.enableVideo();
+        engine.initialize({
+          appId: AGORA_APP_ID,
+          channelProfile: ChannelProfileType.ChannelProfileLiveBroadcasting,
+        });
 
-        await engine.setBeautyEffectOptions(true, {
+        engine.enableVideo();
+
+        engine.setBeautyEffectOptions(true, {
           lighteningContrastLevel: 1,
           lighteningLevel: beautySettings.lighteningLevel,
           smoothnessLevel: beautySettings.smoothnessLevel,
@@ -60,7 +63,7 @@ export default function StartLiveScreen() {
           sharpnessLevel: beautySettings.sharpnessLevel,
         });
 
-        await engine.startPreview();
+        engine.startPreview();
 
         if (mounted) {
           setCameraReady(true);
@@ -76,25 +79,23 @@ export default function StartLiveScreen() {
       mounted = false;
       const engine = engineRef.current;
       if (engine) {
-        (async () => {
-          try {
-            await engine.stopPreview();
-            await engine.destroy();
-          } catch (error) {
-            console.error("Error cleaning up camera:", error);
-          }
-        })();
+        try {
+          engine.stopPreview();
+          engine.release();
+        } catch (error) {
+          console.error("Error cleaning up camera:", error);
+        }
       }
     };
   }, []);
 
-  const handleBeautyChange = async (newSettings) => {
+  const handleBeautyChange = (newSettings) => {
     setBeautySettings(newSettings);
     const engine = engineRef.current;
     if (!engine) return;
 
     try {
-      await engine.setBeautyEffectOptions(beautyEnabled, {
+      engine.setBeautyEffectOptions(beautyEnabled, {
         lighteningContrastLevel: 1,
         lighteningLevel: newSettings.lighteningLevel,
         smoothnessLevel: newSettings.smoothnessLevel,
@@ -106,14 +107,14 @@ export default function StartLiveScreen() {
     }
   };
 
-  const toggleBeauty = async () => {
+  const toggleBeauty = () => {
     const newBeautyState = !beautyEnabled;
     setBeautyEnabled(newBeautyState);
     const engine = engineRef.current;
     if (!engine) return;
 
     try {
-      await engine.setBeautyEffectOptions(newBeautyState, {
+      engine.setBeautyEffectOptions(newBeautyState, {
         lighteningContrastLevel: 1,
         lighteningLevel: beautySettings.lighteningLevel,
         smoothnessLevel: beautySettings.smoothnessLevel,
@@ -125,22 +126,22 @@ export default function StartLiveScreen() {
     }
   };
 
-  const switchCamera = async () => {
+  const switchCamera = () => {
     const engine = engineRef.current;
     if (!engine) return;
 
     try {
-      await engine.switchCamera();
+      engine.switchCamera();
     } catch (error) {
       console.error("Error switching camera:", error);
     }
   };
 
-  const beginLive = async () => {
+  const beginLive = () => {
     const engine = engineRef.current;
     if (engine) {
       try {
-        await engine.stopPreview();
+        engine.stopPreview();
       } catch (error) {
         console.error("Error stopping preview:", error);
       }
@@ -164,10 +165,9 @@ export default function StartLiveScreen() {
   return (
     <View style={styles.container}>
       {cameraReady && (
-        <RtcLocalView.SurfaceView
+        <RtcSurfaceView
           style={StyleSheet.absoluteFill}
-          channelId={DEFAULT_CHANNEL}
-          renderMode={VideoRenderMode.Hidden}
+          canvas={{ uid: 0 }}
         />
       )}
 
