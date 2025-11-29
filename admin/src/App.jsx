@@ -15,6 +15,7 @@ import LoginPage from './pages/LoginPage';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('admin_token'));
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     // Check if token exists on mount
@@ -34,12 +35,12 @@ function App() {
   return (
     <Router>
       {isAuthenticated ? (
-        <div className="flex h-screen bg-dark text-white">
-          <Sidebar />
-          <div className="flex flex-col flex-1">
-            <Navbar setIsAuthenticated={setIsAuthenticated} />
+        <div className="flex flex-col lg:flex-row h-screen bg-dark text-white">
+          <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+          <div className="flex flex-col flex-1 w-full">
+            <Navbar setIsAuthenticated={setIsAuthenticated} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
             <main className="flex-1 overflow-auto bg-dark">
-              <div className="p-8">
+              <div className="p-4 md:p-8">
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/agencies" element={<Agencies />} />
