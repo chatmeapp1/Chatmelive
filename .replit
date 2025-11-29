@@ -46,6 +46,10 @@ localPort = 35837
 externalPort = 3003
 
 [[ports]]
+localPort = 40539
+externalPort = 6800
+
+[[ports]]
 localPort = 41661
 externalPort = 6000
 
@@ -111,6 +115,10 @@ args = "Expo App"
 task = "workflow.run"
 args = "Backend Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Admin Panel"
+
 [[workflows.workflow]]
 name = "Expo App"
 author = "agent"
@@ -121,6 +129,18 @@ outputType = "console"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "EXPO_TUNNEL_SUBDOMAIN=\"zoxsta-anonymous-8081\" npm start"
+
+[[workflows.workflow]]
+name = "Admin Panel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd admin && npm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
 
 [nix]
 channel = "stable-25_05"
