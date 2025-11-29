@@ -12,6 +12,8 @@ export default function Users() {
 
   if (loading) return <LoadingSpinner />;
 
+  const usersList = Array.isArray(users) ? users : [];
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Users Management</h1>
@@ -29,7 +31,7 @@ export default function Users() {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {usersList.map((user) => (
               <tr key={user.id} className="border-b border-gray-700 hover:bg-gray-700">
                 <td className="px-6 py-3 text-gray-300 font-mono text-sm">{user.id}</td>
                 <td className="px-6 py-3 font-medium">{user.username}</td>

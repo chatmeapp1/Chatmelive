@@ -15,12 +15,13 @@ export default function Agencies() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await addAgency(formData);
     setFormData({ name: '', description: '' });
     setIsModalOpen(false);
   };
 
   if (loading) return <LoadingSpinner />;
+
+  const agenciesList = Array.isArray(agencies) ? agencies : [];
 
   return (
     <div className="space-y-6">
@@ -43,14 +44,14 @@ export default function Agencies() {
           <input
             type="text"
             placeholder="Agency Name"
-            value={formData. name}
+            value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full px-3 py-2 bg-gray-700 rounded-lg text-white placeholder-gray-400"
             required
           />
           <textarea
             placeholder="Description"
-            value={formData. description}
+            value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="w-full px-3 py-2 bg-gray-700 rounded-lg text-white placeholder-gray-400 h-24 resize-none"
           />
@@ -76,11 +77,11 @@ export default function Agencies() {
             </tr>
           </thead>
           <tbody>
-            {agencies.map((agency) => (
+            {agenciesList.map((agency) => (
               <tr key={agency.id} className="border-b border-gray-700 hover:bg-gray-700">
                 <td className="px-6 py-3 text-gray-300 font-mono text-sm">{agency.id}</td>
-                <td className="px-6 py-3 font-medium">{agency.name}</td>
-                <td className="px-6 py-3 text-gray-400">{agency.phone}</td>
+                <td className="px-6 py-3 font-medium">{agency.family_name || agency.name}</td>
+                <td className="px-6 py-3 text-gray-400">{agency.phone || agency.user_name}</td>
                 <td className="px-6 py-3">
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                     agency.status === 'approved' ? 'bg-green-600/20 text-green-400' :
