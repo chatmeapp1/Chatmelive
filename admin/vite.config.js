@@ -7,10 +7,13 @@ export default defineConfig({
     port: 5000,
     host: '0.0.0.0',
     allowedHosts: true,
+    cors: true,
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
-        changeOrigin: true
+        changeOrigin: true,
+        rewrite: (path) => path,
+        secure: false
       }
     }
   }
