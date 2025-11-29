@@ -55,13 +55,19 @@ export default function GooglePlayBillingScreen({ navigation }) {
       setConnected(true);
       console.log("✅ IAP Connected");
       
-      // Fetch products
-      const prods = await RNIap.getProducts({ skus: GOOGLE_PLAY_SKUS });
-      console.log("📦 Products fetched:", prods);
-      setProducts(prods);
+      // Fetch products - check if function exists (platform compatibility)
+      if (RNIap.getProducts && typeof RNIap.getProducts === 'function') {
+        const prods = await RNIap.getProducts({ skus: GOOGLE_PLAY_SKUS });
+        console.log("📦 Products fetched:", prods);
+        setProducts(prods);
+      } else {
+        console.log("⚠️ getProducts not available on this platform");
+        setProducts(GOOGLE_PLAY_PACKAGES);
+      }
     } catch (error) {
       console.error("❌ IAP Init error:", error);
-      Alert.alert("Error", "Failed to connect to Google Play Store");
+      // Continue with local packages as fallback
+      setProducts(GOOGLE_PLAY_PACKAGES);
     } finally {
       setLoading(false);
     }
