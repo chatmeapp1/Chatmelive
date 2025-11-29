@@ -10,10 +10,13 @@ const verifyAdmin = async (req, res, next) => {
   try {
     const auth = req.headers.authorization;
     if (!auth) {
+      console.log("❌ No authorization header");
       return res.status(401).json({ success: false, message: "No token" });
     }
     const token = auth.split(" ")[1];
+    console.log("🔑 Token received, verifying...");
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log("✅ Token verified, decoded email:", decoded.email);
     
     // Check if user is admin in admin_users table
     const client = await pool.connect();
@@ -22,19 +25,22 @@ const verifyAdmin = async (req, res, next) => {
         "SELECT id, email, role FROM admin_users WHERE email = $1 AND role = 'admin'",
         [decoded.email]
       );
+      console.log("🔍 Admin check result:", result.rows.length, "admin(s) found");
       
       if (result.rows.length === 0) {
+        console.log("❌ Admin not found for email:", decoded.email);
         return res.status(403).json({ success: false, message: "Not authorized as admin" });
       }
       
       req.adminId = result.rows[0].id;
       req.adminEmail = result.rows[0].email;
+      console.log("✅ Admin verified:", req.adminEmail);
       next();
     } finally {
       client.release();
     }
   } catch (error) {
-    console.error("Admin auth error:", error);
+    console.error("❌ Admin auth error:", error.message);
     return res.status(403).json({ success: false, message: "Invalid token" });
   }
 };
@@ -122,41 +128,11 @@ router.get("/users", verifyAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      `SELECT id, name as username, phone as email, balance as coin, is_banned, created_at FROM users ORDER BY created_at DESC`
+      `SELECT id, name as username, phone as email, balance as coin, level, vip_level, created_at FROM users ORDER BY created_at DESC`
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error("Error fetching users:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  } finally {
-    client.release();
-  }
-});
-
-// POST: Ban user
-router.post("/user/:userId/ban", verifyAdmin, async (req, res) => {
-  const { userId } = req.params;
-  const client = await pool.connect();
-  try {
-    await client.query(`UPDATE users SET is_banned = true WHERE id = $1`, [userId]);
-    res.json({ success: true, message: "User banned" });
-  } catch (error) {
-    console.error("Error banning user:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  } finally {
-    client.release();
-  }
-});
-
-// POST: Unban user
-router.post("/user/:userId/unban", verifyAdmin, async (req, res) => {
-  const { userId } = req.params;
-  const client = await pool.connect();
-  try {
-    await client.query(`UPDATE users SET is_banned = false WHERE id = $1`, [userId]);
-    res.json({ success: true, message: "User unbanned" });
-  } catch (error) {
-    console.error("Error unbanning user:", error);
     res.status(500).json({ success: false, message: "Server error" });
   } finally {
     client.release();
