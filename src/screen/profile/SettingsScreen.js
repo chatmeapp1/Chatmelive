@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { CommonActions } from "@react-navigation/native";
 import { authAPI } from "../../utils/api";
 
 export default function SettingsScreen({ navigation }) {
@@ -23,11 +24,18 @@ export default function SettingsScreen({ navigation }) {
           text: "Keluar",
           style: "destructive",
           onPress: async () => {
-            await authAPI.logout();
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "Auth" }],
-            });
+            try {
+              await authAPI.logout();
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: "Auth" }],
+                })
+              );
+            } catch (error) {
+              console.error("❌ Logout error:", error);
+              Alert.alert("Error", "Failed to logout");
+            }
           },
         },
       ]
