@@ -52,6 +52,7 @@ export default function Hosts() {
           <thead className="border-b border-gray-700">
             <tr className="bg-gray-700">
               <th className="px-6 py-3 text-left">Host Name</th>
+              <th className="px-6 py-3 text-left">Agency ID</th>
               <th className="px-6 py-3 text-left">Agency</th>
               <th className="px-6 py-3 text-left">Lives</th>
               <th className="px-6 py-3 text-left">Status</th>
@@ -62,6 +63,7 @@ export default function Hosts() {
             {filteredHosts.map((host) => (
               <tr key={host.id} className="border-b border-gray-700 hover:bg-gray-700">
                 <td className="px-6 py-3">{host.username}</td>
+                <td className="px-6 py-3 text-gray-300 font-mono text-sm">{host.agency_id || 'N/A'}</td>
                 <td className="px-6 py-3 text-gray-400">{host.agency_name || 'N/A'}</td>
                 <td className="px-6 py-3">{host.live_count || 0}</td>
                 <td className="px-6 py-3">
