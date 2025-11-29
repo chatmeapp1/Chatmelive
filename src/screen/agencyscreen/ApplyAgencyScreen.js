@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -19,13 +19,36 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function ApplyAgencyScreen({ navigation }) {
   const [region, setRegion] = useState("");
   const [showRegionPicker, setShowRegionPicker] = useState(false);
-  const [userId] = useState("703256893"); // Auto-filled from user session
+  const [userId, setUserId] = useState("");
   const [familyName, setFamilyName] = useState("");
   const [name, setName] = useState("");
   const [gender, setGender] = useState("Female");
   const [paperwork, setPaperwork] = useState("ID card");
   const [idNumber, setIdNumber] = useState("");
   const [phone, setPhone] = useState("");
+
+  // Fetch real user ID on component mount
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.log("❌ No auth token found");
+        return;
+      }
+
+      const response = await api.get("/auth/profile");
+      if (response.data.success && response.data.data.id) {
+        setUserId(response.data.data.id.toString());
+        console.log("✅ User ID loaded:", response.data.data.id);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching user profile:", error);
+    }
+  };
 
   // Check if all required fields are filled
   const isFormComplete = () => {
