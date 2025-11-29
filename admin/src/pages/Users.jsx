@@ -20,6 +20,7 @@ export default function Users() {
         <table className="w-full">
           <thead className="border-b border-gray-700">
             <tr className="bg-gray-700">
+              <th className="px-6 py-3 text-left">User ID</th>
               <th className="px-6 py-3 text-left">Username</th>
               <th className="px-6 py-3 text-left">Email</th>
               <th className="px-6 py-3 text-left">Coin</th>
@@ -30,6 +31,7 @@ export default function Users() {
           <tbody>
             {users.map((user) => (
               <tr key={user.id} className="border-b border-gray-700 hover:bg-gray-700">
+                <td className="px-6 py-3 text-gray-300 font-mono text-sm">{user.id}</td>
                 <td className="px-6 py-3 font-medium">{user.username}</td>
                 <td className="px-6 py-3 text-gray-400">{user.email}</td>
                 <td className="px-6 py-3 text-yellow-400 font-bold">{user.coin || 0}</td>
