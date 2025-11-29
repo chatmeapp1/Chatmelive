@@ -143,8 +143,13 @@ export default function ProfileHeader({ userData }) {
         />
       </View>
 
-      {/* ✅ Nickname/Username */}
-      <Text style={styles.nickname}>{userData?.name || "User"}</Text>
+      {/* ✅ Nickname/Username with User ID */}
+      <View style={styles.nicknameContainer}>
+        <Text style={styles.nickname}>{userData?.name || "User"}</Text>
+        {userData?.id && (
+          <Text style={styles.userId}>#{userData.id}</Text>
+        )}
+      </View>
 
       {/* ✅ Row badge */}
       <View style={styles.badgeRow}>
@@ -236,11 +241,24 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
 
+  nicknameContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+    gap: 6,
+  },
+
   nickname: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-    marginTop: 10,
+    textAlign: "center",
+  },
+
+  userId: {
+    color: "#AAA",
+    fontSize: 12,
+    fontWeight: "500",
     textAlign: "center",
   },
 
