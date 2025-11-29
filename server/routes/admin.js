@@ -128,11 +128,73 @@ router.get("/users", verifyAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      `SELECT id, name as username, phone as email, balance as coin, level, vip_level, created_at FROM users ORDER BY created_at DESC`
+      `SELECT id, name as username, phone as email, balance as coin, level, vip_level, is_banned, created_at FROM users ORDER BY created_at DESC`
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error("Error fetching users:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+// POST: Ban user
+router.post("/user/:userId/ban", verifyAdmin, async (req, res) => {
+  const { userId } = req.params;
+  const client = await pool.connect();
+  try {
+    await client.query(`UPDATE users SET is_banned = true WHERE id = $1`, [userId]);
+    console.log(`✅ User ${userId} banned by admin`);
+    res.json({ success: true, message: "User banned successfully" });
+  } catch (error) {
+    console.error("Error banning user:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+// POST: Unban user
+router.post("/user/:userId/unban", verifyAdmin, async (req, res) => {
+  const { userId } = req.params;
+  const client = await pool.connect();
+  try {
+    await client.query(`UPDATE users SET is_banned = false WHERE id = $1`, [userId]);
+    console.log(`✅ User ${userId} unbanned by admin`);
+    res.json({ success: true, message: "User unbanned successfully" });
+  } catch (error) {
+    console.error("Error unbanning user:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+// PUT: Update user balance
+router.put("/user/:userId/balance", verifyAdmin, async (req, res) => {
+  const { userId } = req.params;
+  const { amount } = req.body;
+  
+  if (typeof amount !== 'number' || amount < 0) {
+    return res.status(400).json({ success: false, message: "Invalid amount" });
+  }
+
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `UPDATE users SET balance = $1 WHERE id = $2 RETURNING id, balance`,
+      [amount, userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    console.log(`✅ User ${userId} balance updated to ${amount} by admin`);
+    res.json({ success: true, message: "Balance updated", data: result.rows[0] });
+  } catch (error) {
+    console.error("Error updating user balance:", error);
     res.status(500).json({ success: false, message: "Server error" });
   } finally {
     client.release();
