@@ -15,11 +15,26 @@ const verifyAdmin = async (req, res, next) => {
     const token = auth.split(" ")[1];
     const decoded = jwt.verify(token, JWT_SECRET);
     
-    // For now, consider user with role='admin' as admin
-    // In production, check admin table
-    req.userId = decoded.id;
-    next();
+    // Check if user is admin in admin_users table
+    const client = await pool.connect();
+    try {
+      const result = await client.query(
+        "SELECT id, email, role FROM admin_users WHERE email = $1 AND role = 'admin'",
+        [decoded.email]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(403).json({ success: false, message: "Not authorized as admin" });
+      }
+      
+      req.adminId = result.rows[0].id;
+      req.adminEmail = result.rows[0].email;
+      next();
+    } finally {
+      client.release();
+    }
   } catch (error) {
+    console.error("Admin auth error:", error);
     return res.status(403).json({ success: false, message: "Invalid token" });
   }
 };
@@ -107,7 +122,7 @@ router.get("/users", verifyAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      `SELECT id, username, email, coin, is_banned, created_at FROM users ORDER BY created_at DESC`
+      `SELECT id, name as username, phone as email, balance as coin, is_banned, created_at FROM users ORDER BY created_at DESC`
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
@@ -153,7 +168,7 @@ router.get("/hosts", verifyAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      `SELECT u.id, u.username, u.name, a.name as agency_name, 
+      `SELECT u.id, u.name as username, u.name, h.agency_id, a.name as agency_name, 
               h.status, h.approved_at, COUNT(DISTINCT ls.id) as live_count
        FROM users u
        LEFT JOIN host_applications h ON h.host_id = u.id
