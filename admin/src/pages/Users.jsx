@@ -31,34 +31,40 @@ export default function Users() {
             </tr>
           </thead>
           <tbody>
-            {usersList.map((user) => (
-              <tr key={user.id} className="border-b border-gray-700 hover:bg-gray-700">
-                <td className="px-6 py-3 text-gray-300 font-mono text-sm">{user.id}</td>
-                <td className="px-6 py-3 font-medium">{user.username}</td>
-                <td className="px-6 py-3 text-gray-400">{user.email}</td>
-                <td className="px-6 py-3 text-yellow-400 font-bold">{user.coin || 0}</td>
-                <td className="px-6 py-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    user.is_banned ? 'bg-red-600/20 text-red-400' : 'bg-green-600/20 text-green-400'
-                  }`}>
-                    {user.is_banned ? 'Banned' : 'Active'}
-                  </span>
-                </td>
-                <td className="px-6 py-3">
-                  <button
-                    onClick={() => user.is_banned ? unbanUser(user.id) : banUser(user.id)}
-                    className={`flex items-center gap-2 px-3 py-1 rounded text-sm transition ${
-                      user.is_banned
-                        ? 'bg-green-600 hover:bg-green-700'
-                        : 'bg-red-600 hover:bg-red-700'
-                    }`}
-                  >
-                    {user.is_banned ? <Shield size={16} /> : <Ban size={16} />}
-                    {user.is_banned ? 'Unban' : 'Ban'}
-                  </button>
-                </td>
+            {usersList.length > 0 ? (
+              usersList.map((user) => (
+                <tr key={user.id} className="border-b border-gray-700 hover:bg-gray-700">
+                  <td className="px-6 py-3 text-gray-300 font-mono text-sm">{user.id}</td>
+                  <td className="px-6 py-3 font-medium">{user.username}</td>
+                  <td className="px-6 py-3 text-gray-400">{user.email}</td>
+                  <td className="px-6 py-3 text-yellow-400 font-bold">{user.coin || 0}</td>
+                  <td className="px-6 py-3">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      user.is_banned ? 'bg-red-600/20 text-red-400' : 'bg-green-600/20 text-green-400'
+                    }`}>
+                      {user.is_banned ? 'Banned' : 'Active'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3">
+                    <button
+                      onClick={() => user.is_banned ? unbanUser(user.id) : banUser(user.id)}
+                      className={`flex items-center gap-2 px-3 py-1 rounded text-sm transition ${
+                        user.is_banned
+                          ? 'bg-green-600 hover:bg-green-700'
+                          : 'bg-red-600 hover:bg-red-700'
+                      }`}
+                    >
+                      {user.is_banned ? <Shield size={16} /> : <Ban size={16} />}
+                      {user.is_banned ? 'Unban' : 'Ban'}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="px-6 py-3 text-center text-gray-400">No users found</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
