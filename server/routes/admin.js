@@ -206,7 +206,7 @@ router.get("/hosts", verifyAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      `SELECT u.id, u.name as username, u.name, h.agency_id, a.name as agency_name, 
+      `SELECT u.id, u.name as username, h.agency_id, a.family_name as agency_name, 
               h.status, h.approved_at, COUNT(DISTINCT ls.id) as live_count
        FROM users u
        LEFT JOIN host_applications h ON h.host_id = u.id
