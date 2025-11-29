@@ -22,6 +22,16 @@ function App() {
     const token = localStorage.getItem('admin_token');
     setIsAuthenticated(!!token);
     setLoading(false);
+
+    // Listen for storage changes (when token is added in LoginPage)
+    const handleStorageChange = (e) => {
+      if (e.key === 'admin_token') {
+        setIsAuthenticated(!!localStorage.getItem('admin_token'));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   if (loading) {

@@ -24,7 +24,8 @@ export default function LoginPage() {
 
       if (data.success) {
         localStorage.setItem('admin_token', data.token);
-        navigate('/');
+        // Reload to ensure App.jsx detects the token
+        setTimeout(() => window.location.href = '/', 100);
       } else {
         setError(data.message || 'Login failed');
       }
