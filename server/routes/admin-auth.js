@@ -1,5 +1,5 @@
 import express from 'express';
-import db from '../db.js';
+import { pool } from '../db.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
@@ -15,7 +15,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Check if admin exists
-    const adminResult = await db.query(
+    const adminResult = await pool.query(
       'SELECT id, email, password_hash FROM admin_users WHERE email = $1',
       [email]
     );
