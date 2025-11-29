@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "Chatmelive",
+    "slug": "myapp",
+    "version": "1.0.0",
+    "scheme": "chatme",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+
+    "ios": {
+      "supportsTablet": true
+    },
+
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.chatme1.MyApp",
+
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+
+    "web": {
+      "bundler": "none",
+      "favicon": "./assets/favicon.png"
+    },
+
+    "plugins": [
+      "expo-font",
+      "expo-web-browser",
+      "react-native-iap"
+    ],
+
+    "extra": {
+      "eas": {
+        "projectId": "c96c5061-7ef8-48ab-a054-423709f10679"
+      }
+    },
+
+    "owner": "chatmelive"
+  }
+}

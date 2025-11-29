@@ -1,0 +1,407 @@
+import React, { useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  Animated,
+  Dimensions,
+  StyleSheet,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import LottieView from "lottie-react-native";
+
+const { width, height } = Dimensions.get("window");
+
+export default function JPWinAnimation({
+  jpResult = null,
+  onAnimationEnd = () => {},
+}) {
+  const animOpacity = useRef(new Animated.Value(0)).current;
+  const animScale = useRef(new Animated.Value(0.3)).current;
+  const animRotate = useRef(new Animated.Value(0)).current;
+  const coinFloatY = useRef(new Animated.Value(0)).current;
+
+  // Determine color & animation based on JP level
+  const getJPStyle = () => {
+    if (!jpResult) return {};
+    const level = jpResult.jpLevel;
+
+    if (level >= 1000) {
+      return {
+        bgColor: "rgba(255, 215, 0, 0.15)",
+        borderColor: "#FFD700",
+        titleColor: "#FFD700",
+        titleGlow: "#FF6B6B",
+        levelColor: "#FF1493",
+        coinColor: "#00FF00",
+        icon: "star",
+        isSuper: true,
+      };
+    } else if (level >= 500) {
+      return {
+        bgColor: "rgba(255, 105, 180, 0.15)",
+        borderColor: "#FF69B4",
+        titleColor: "#FF69B4",
+        titleGlow: "#FFD700",
+        levelColor: "#FF1493",
+        coinColor: "#FFD700",
+        icon: "flame",
+        isSuper: true,
+        useLottie: true,
+        lottiePath: require("../../../../assets/lottie/win500.json"),
+      };
+    } else if (level >= 200) {
+      return {
+        bgColor: "rgba(100, 200, 255, 0.15)",
+        borderColor: "#64C8FF",
+        titleColor: "#64C8FF",
+        titleGlow: "#00FFFF",
+        levelColor: "#00FFFF",
+        coinColor: "#A6FFCB",
+        icon: "sparkles",
+        isSuper: false,
+      };
+    } else {
+      return {
+        bgColor: "rgba(166, 255, 203, 0.15)",
+        borderColor: "#A6FFCB",
+        titleColor: "#A6FFCB",
+        titleGlow: "#00FF00",
+        levelColor: "#00FF00",
+        coinColor: "#FFFFFF",
+        icon: "gift",
+        isSuper: false,
+      };
+    }
+  };
+
+  const jpStyle = getJPStyle();
+
+  // Main animation sequence
+  useEffect(() => {
+    if (jpResult) {
+      // Animation in
+      Animated.parallel([
+        Animated.timing(animOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.spring(animScale, {
+          toValue: 1,
+          tension: 50,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animRotate, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // Coin float animation (looping)
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(coinFloatY, {
+            toValue: -50,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(coinFloatY, {
+            toValue: 0,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+
+      // Auto close after 2 seconds
+      const timer = setTimeout(() => {
+        Animated.parallel([
+          Animated.timing(animOpacity, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(animScale, {
+            toValue: 0.3,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          onAnimationEnd();
+        });
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [jpResult]);
+
+  if (!jpResult) return null;
+
+  const rotateInterpolate = animRotate.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
+  return (
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          opacity: animOpacity,
+          transform: [{ scale: animScale }, { rotate: rotateInterpolate }],
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.jpResultBox,
+          {
+            backgroundColor: jpStyle.bgColor,
+            borderColor: jpStyle.borderColor,
+          },
+        ]}
+      >
+        {/* Win500 Lottie Animation for Level 500+ */}
+        {jpStyle.useLottie && (
+          <View style={styles.lottieContainer}>
+            <LottieView
+              source={jpStyle.lottiePath}
+              autoPlay
+              loop={false}
+              style={styles.lottieAnimation}
+              resizeMode="contain"
+            />
+          </View>
+        )}
+
+        {/* Top decorative sparkles */}
+        <View style={styles.sparklesTop}>
+          <Text style={{ fontSize: 24 }}>✨</Text>
+          <Text style={{ fontSize: 24 }}>⭐</Text>
+          <Text style={{ fontSize: 24 }}>✨</Text>
+        </View>
+
+        {/* Icon */}
+        <View style={styles.iconContainer}>
+          <Ionicons name={jpStyle.icon} size={60} color={jpStyle.titleColor} />
+        </View>
+
+        {/* JP WIN Text */}
+        <Text
+          style={[
+            styles.jpWinText,
+            {
+              color: jpStyle.titleColor,
+              textShadowColor: jpStyle.titleGlow,
+            },
+          ]}
+        >
+          JP WIN!
+        </Text>
+
+        {/* JP Level Badge */}
+        <View
+          style={[styles.levelBadge, { borderColor: jpStyle.levelColor }]}
+        >
+          <Text
+            style={[
+              styles.levelBadgeText,
+              { color: jpStyle.levelColor },
+            ]}
+          >
+            Lv {jpStyle.isSuper ? "🔥" : "✓"} {jpResult.jpLevel}
+          </Text>
+        </View>
+
+        {/* Reward Coin */}
+        <Animated.View
+          style={[
+            styles.coinRewardContainer,
+            { transform: [{ translateY: coinFloatY }] },
+          ]}
+        >
+          <Text
+            style={[
+              styles.coinRewardText,
+              { color: jpStyle.coinColor },
+            ]}
+          >
+            +{jpResult.jpWinAmount?.toLocaleString("id-ID")}
+          </Text>
+          <Text style={styles.coinIcon}>💰</Text>
+        </Animated.View>
+
+        {/* Combo info (opsional) */}
+        {jpResult.combo && (
+          <Text style={styles.comboInfo}>
+            Combo x{jpResult.combo}
+          </Text>
+        )}
+
+        {/* Bottom decorative sparkles */}
+        <View style={styles.sparklesBottom}>
+          <Text style={{ fontSize: 20 }}>✨</Text>
+          <Text style={{ fontSize: 20 }}>🎉</Text>
+          <Text style={{ fontSize: 20 }}>✨</Text>
+        </View>
+      </View>
+
+      {/* Particle effects (background rays) */}
+      <View style={styles.particleRays}>
+        {[...Array(8)].map((_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.ray,
+              {
+                transform: [
+                  { rotate: `${i * 45}deg` },
+                  { translateY: -80 },
+                ],
+                borderTopColor: jpStyle.titleColor,
+              },
+            ]}
+          />
+        ))}
+      </View>
+    </Animated.View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    top: height * 0.15,
+    left: width * 0.05,
+    right: width * 0.05,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10000,
+  },
+
+  jpResultBox: {
+    width: width * 0.9,
+    paddingVertical: 40,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    borderWidth: 3,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 25,
+  },
+
+  lottieContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 5,
+    borderRadius: 25,
+    overflow: "hidden",
+  },
+
+  lottieAnimation: {
+    width: "100%",
+    height: "100%",
+  },
+
+  sparklesTop: {
+    flexDirection: "row",
+    gap: 40,
+    marginBottom: 20,
+    justifyContent: "center",
+  },
+
+  sparklesBottom: {
+    flexDirection: "row",
+    gap: 40,
+    marginTop: 20,
+    justifyContent: "center",
+  },
+
+  iconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 15,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
+
+  jpWinText: {
+    fontSize: 48,
+    fontWeight: "900",
+    letterSpacing: 2,
+    textShadowOffset: { width: 3, height: 3 },
+    textShadowRadius: 8,
+    marginBottom: 12,
+  },
+
+  levelBadge: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 2,
+    marginBottom: 16,
+    backgroundColor: "rgba(0,0,0,0.2)",
+  },
+
+  levelBadgeText: {
+    fontSize: 14,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+
+  coinRewardContainer: {
+    alignItems: "center",
+    marginVertical: 12,
+  },
+
+  coinRewardText: {
+    fontSize: 36,
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
+
+  coinIcon: {
+    fontSize: 40,
+    marginTop: 4,
+  },
+
+  comboInfo: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "rgba(255,255,255,0.7)",
+    marginTop: 8,
+    letterSpacing: 0.5,
+  },
+
+  particleRays: {
+    position: "absolute",
+    width: width * 0.9,
+    height: width * 0.9,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  ray: {
+    position: "absolute",
+    width: 2,
+    height: 80,
+    borderTopWidth: 2,
+    opacity: 0.6,
+  },
+});
