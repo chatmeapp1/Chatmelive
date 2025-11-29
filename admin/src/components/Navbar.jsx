@@ -1,8 +1,9 @@
 import { LogOut, Settings } from 'lucide-react';
 
-export default function Navbar() {
+export default function Navbar({ setIsAuthenticated }) {
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
+    setIsAuthenticated && setIsAuthenticated(false);
     window.location.href = '/login';
   };
 
