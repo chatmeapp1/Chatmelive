@@ -25,8 +25,13 @@ export default function ApplyAgencyScreen({ navigation }) {
   const [idNumber, setIdNumber] = useState("");
   const [phone, setPhone] = useState("");
 
+  // Check if all required fields are filled
+  const isFormComplete = () => {
+    return region && familyName && name && idNumber && phone;
+  };
+
   const handleSubmit = () => {
-    if (!familyName || !name || !idNumber || !phone) {
+    if (!isFormComplete()) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
@@ -161,8 +166,22 @@ export default function ApplyAgencyScreen({ navigation }) {
 
       {/* Submit Button */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitText}>Confirm submission</Text>
+        <TouchableOpacity 
+          style={[
+            styles.submitButton,
+            isFormComplete() ? styles.submitButtonActive : styles.submitButtonDisabled
+          ]} 
+          onPress={handleSubmit}
+          disabled={!isFormComplete()}
+        >
+          <Text 
+            style={[
+              styles.submitText,
+              isFormComplete() ? styles.submitTextActive : styles.submitTextDisabled
+            ]}
+          >
+            Confirm submission
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -275,14 +294,24 @@ const styles = StyleSheet.create({
     borderTopColor: "#f0f0f0",
   },
   submitButton: {
-    backgroundColor: "#E0E0E0",
     paddingVertical: 16,
     borderRadius: 25,
     alignItems: "center",
   },
+  submitButtonActive: {
+    backgroundColor: "#6EE096",
+  },
+  submitButtonDisabled: {
+    backgroundColor: "#E0E0E0",
+  },
   submitText: {
     fontSize: 16,
-    color: "#999",
     fontWeight: "500",
+  },
+  submitTextActive: {
+    color: "#fff",
+  },
+  submitTextDisabled: {
+    color: "#999",
   },
 });
