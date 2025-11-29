@@ -363,3 +363,68 @@ router.get("/:agencyId/total-income", verifyAgency, async (req, res) => {
 });
 
 export default router;
+
+// Apply for Agency
+router.post("/apply", async (req, res) => {
+  try {
+    const auth = req.headers.authorization;
+    if (!auth) {
+      return res.status(401).json({ success: false, message: "No token provided" });
+    }
+
+    const token = auth.split(" ")[1];
+    let userId;
+    
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      userId = decoded.id;
+    } catch {
+      return res.status(401).json({ success: false, message: "Invalid token" });
+    }
+
+    const { region, familyName, phone, idNumber } = req.body;
+
+    // Validate 16-digit ID card
+    if (!idNumber || idNumber.length !== 16 || !/^\d+$/.test(idNumber)) {
+      return res.status(400).json({ success: false, message: "ID Card must be exactly 16 digits" });
+    }
+
+    const client = await pool.connect();
+    try {
+      // Check if ID card already exists
+      const existingAgency = await client.query(
+        "SELECT id FROM agency WHERE id_number = $1",
+        [idNumber]
+      );
+
+      if (existingAgency.rows.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "This ID card has already been used to create an agency" 
+        });
+      }
+
+      // Insert new agency
+      const result = await client.query(
+        `INSERT INTO agency (user_id, family_name, region, phone, id_number, status)
+         VALUES ($1, $2, $3, $4, $5, 'pending')
+         RETURNING id, family_name, region, phone, status, created_at`,
+        [userId, familyName, region, phone, idNumber]
+      );
+
+      console.log(`✅ Agency application submitted: ${familyName} (ID: ${idNumber})`);
+
+      res.json({
+        success: true,
+        message: "Agency application submitted successfully! Please wait for approval.",
+        data: result.rows[0],
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error("Error submitting agency application:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+

@@ -13,6 +13,8 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import RegionPickerModal from "../../components/RegionPickerModal";
+import api from "../../utils/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ApplyAgencyScreen({ navigation }) {
   const [region, setRegion] = useState("");
@@ -27,17 +29,51 @@ export default function ApplyAgencyScreen({ navigation }) {
 
   // Check if all required fields are filled
   const isFormComplete = () => {
-    return region && familyName && name && idNumber && phone;
+    return region && familyName && name && idNumber && phone && idNumber.length === 16;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isFormComplete()) {
+      if (!idNumber || idNumber.length !== 16) {
+        Alert.alert("Error", "ID Card must be exactly 16 digits (KTP)");
+        return;
+      }
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
-    Alert.alert("Success", "Your agency application has been submitted!", [
-      { text: "OK", onPress: () => navigation.goBack() },
-    ]);
+
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      
+      const response = await api.post(
+        "/agency/apply",
+        {
+          region,
+          familyName,
+          name,
+          idNumber,
+          phone,
+          gender,
+          paperwork: "ID card",
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        Alert.alert("Success", response.data.message || "Your agency application has been submitted!", [
+          { text: "OK", onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        Alert.alert("Error", response.data.message || "Failed to submit application");
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
+      if (error.response?.data?.message) {
+        Alert.alert("Error", error.response.data.message);
+      } else {
+        Alert.alert("Error", "Failed to submit application");
+      }
+    }
   };
 
   return (
@@ -139,15 +175,29 @@ export default function ApplyAgencyScreen({ navigation }) {
 
         {/* ID */}
         <View style={styles.row}>
-          <Text style={styles.label}>ID</Text>
-          <TextInput
-            style={styles.input}
-            placeholder=""
-            placeholderTextColor="#bbb"
-            value={idNumber}
-            onChangeText={setIdNumber}
-            keyboardType="numeric"
-          />
+          <Text style={styles.label}>ID (16 Digit KTP)</Text>
+          <View style={{ flex: 1, marginLeft: 20 }}>
+            <TextInput
+              style={[styles.input, idNumber.length === 16 ? styles.inputValid : idNumber.length > 0 ? styles.inputInvalid : null]}
+              placeholder="16 digits"
+              placeholderTextColor="#bbb"
+              value={idNumber}
+              onChangeText={(text) => {
+                // Only allow numbers and max 16 digits
+                const numericText = text.replace(/[^0-9]/g, '');
+                if (numericText.length <= 16) {
+                  setIdNumber(numericText);
+                }
+              }}
+              keyboardType="numeric"
+              maxLength={16}
+            />
+            {idNumber.length > 0 && (
+              <Text style={styles.digitCounter}>
+                {idNumber.length}/16 digits
+              </Text>
+            )}
+          </View>
         </View>
 
         {/* Phone */}
@@ -313,5 +363,19 @@ const styles = StyleSheet.create({
   },
   submitTextDisabled: {
     color: "#999",
+  },
+  inputValid: {
+    borderBottomColor: "#6EE096",
+    borderBottomWidth: 2,
+  },
+  inputInvalid: {
+    borderBottomColor: "#FF6B6B",
+    borderBottomWidth: 2,
+  },
+  digitCounter: {
+    fontSize: 12,
+    color: "#bbb",
+    marginTop: 4,
+    textAlign: "right",
   },
 });
