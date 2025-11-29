@@ -6,6 +6,28 @@ import { pool } from "../db.js";
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "chatme_secret_key";
 
+// ✅ Function to generate random 6+ digit agency ID
+const generateAgencyId = async () => {
+  let isUnique = false;
+  let agencyId;
+  
+  while (!isUnique) {
+    // Generate random 6+ digit ID (100000 to 999999)
+    agencyId = Math.floor(Math.random() * 9000000) + 100000;
+    
+    // Check if ID already exists
+    const client = await pool.connect();
+    try {
+      const result = await client.query("SELECT id FROM agency WHERE id = $1", [agencyId]);
+      isUnique = result.rows.length === 0;
+    } finally {
+      client.release();
+    }
+  }
+  
+  return agencyId;
+};
+
 // Middleware untuk verify agency access
 const verifyAgency = async (req, res, next) => {
   try {
@@ -404,12 +426,15 @@ router.post("/apply", async (req, res) => {
         });
       }
 
-      // Insert new agency
+      // Generate random agency ID
+      const agencyId = await generateAgencyId();
+      
+      // Insert new agency with random ID
       const result = await client.query(
-        `INSERT INTO agency (user_id, family_name, region, phone, id_number, status)
-         VALUES ($1, $2, $3, $4, $5, 'pending')
+        `INSERT INTO agency (id, user_id, family_name, region, phone, id_number, status)
+         VALUES ($1, $2, $3, $4, $5, $6, 'pending')
          RETURNING id, family_name, region, phone, status, created_at`,
-        [userId, familyName, region, phone, idNumber]
+        [agencyId, userId, familyName, region, phone, idNumber]
       );
 
       console.log(`✅ Agency application submitted: ${familyName} (ID: ${idNumber})`);
