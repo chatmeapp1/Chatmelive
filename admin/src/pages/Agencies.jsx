@@ -67,6 +67,7 @@ export default function Agencies() {
         <table className="w-full">
           <thead className="border-b border-gray-700">
             <tr className="bg-gray-700">
+              <th className="px-6 py-3 text-left">Agency ID</th>
               <th className="px-6 py-3 text-left">Agency Name</th>
               <th className="px-6 py-3 text-left">Contact</th>
               <th className="px-6 py-3 text-left">Status</th>
@@ -77,6 +78,7 @@ export default function Agencies() {
           <tbody>
             {agencies.map((agency) => (
               <tr key={agency.id} className="border-b border-gray-700 hover:bg-gray-700">
+                <td className="px-6 py-3 text-gray-300 font-mono text-sm">{agency.id}</td>
                 <td className="px-6 py-3 font-medium">{agency.name}</td>
                 <td className="px-6 py-3 text-gray-400">{agency.phone}</td>
                 <td className="px-6 py-3">
