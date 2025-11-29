@@ -9,9 +9,8 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       '/api': {
-        target: 'https://octagonal-sha-unspruced.ngrok-free.dev',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        target: 'http://localhost:8000',
+        changeOrigin: true
       }
     }
   }
