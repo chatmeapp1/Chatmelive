@@ -27,6 +27,7 @@ import jpGiftRoutes from "./routes/jpGift.js";
 import adminRoutes from "./routes/admin.js";
 import superAdminRoutes from "./routes/superAdmin.js";
 import paymentRoutes from "./routes/payment.js";
+import adminAuthRoutes from "./routes/admin-auth.js";
 import { pool } from "./db.js";
 
 dotenv.config();
@@ -87,6 +88,7 @@ app.use("/api/jp-gift", jpGiftRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/super-admin", superAdminRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/admin-auth", adminAuthRoutes);
 
 // ====================================================
 // ✅ 404 Handler
