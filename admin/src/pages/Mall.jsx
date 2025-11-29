@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAdminStore } from '../store/adminStore';
-import { mallAPI } from '../services/api';
+import { mallAPI } from '../service/api';
 import { Plus, Trash2 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import FormModal from '../components/FormModal';
@@ -20,7 +20,7 @@ export default function Mall() {
   }, []);
 
   const handleFileChange = (e) => {
-    setFormData({ ...formData, image: e. target.files[0] });
+    setFormData({ ...formData, image: e.target.files[0] });
   };
 
   const handleSubmit = async (e) => {
@@ -29,7 +29,7 @@ export default function Mall() {
       let imageUrl = '';
       if (formData.image) {
         const uploadRes = await mallAPI.upload(formData.image);
-        imageUrl = uploadRes.data. imageUrl;
+        imageUrl = uploadRes.data.imageUrl;
       }
 
       await mallAPI.create({

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAdminStore } from '../store/adminStore';
-import { giftsAPI } from '../services/api';
+import { giftsAPI } from '../service/api';
 import { Plus, Trash2 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import FormModal from '../components/FormModal';
@@ -29,7 +29,7 @@ export default function Gifts() {
       let imageUrl = '';
       if (formData.image) {
         const uploadRes = await giftsAPI.upload(formData.image);
-        imageUrl = uploadRes.data. imageUrl;
+        imageUrl = uploadRes.data.imageUrl;
       }
 
       await giftsAPI.create({
