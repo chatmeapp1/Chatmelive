@@ -44,11 +44,39 @@ const io = new Server(httpServer, {
   }
 });
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+// ✅ CORS Configuration dengan specific domains
+const corsOptions = {
+  origin: [
+    "https://5673766c-0cb9-4eb2-ba61-380c90ae9383-00-107h8sd6jgwdl.sisko.replit.dev",
+    "https://octagonal-sha-unspruced.ngrok-free.dev",
+    "http://localhost:3000",
+    "http://localhost:5000",
+    "*" // Fallback untuk development
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+app.use(cors(corsOptions));
+
+// ✅ Handle preflight OPTIONS requests
+app.options("*", cors(corsOptions));
+
+// ✅ Custom middleware untuk CORS headers
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.get("origin") || "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    console.log("✅ Preflight request accepted for:", req.get("origin"));
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json());
 
 // Serve uploaded files statically
