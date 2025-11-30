@@ -44,6 +44,7 @@
     "expo-random": "^14.0.1",
     "expo-status-bar": "~3.0.8",
     "expo-web-browser": "~15.0.9",
+    "express-fileupload": "^1.5.2",
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.2",
     "lottie-react-native": "~7.3.1",

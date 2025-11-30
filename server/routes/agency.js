@@ -2,6 +2,8 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import { pool } from "../db.js";
+import path from "path";
+import fs from "fs";
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "chatme_secret_key";

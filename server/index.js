@@ -5,6 +5,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import path from "path";
 import { fileURLToPath } from "url";
+import fileUpload from "express-fileupload";
 import { initDatabase } from "./db.js";
 import authRoutes from "./routes/auth.js";
 import rankingRoutes from "./routes/ranking.js";
@@ -78,6 +79,9 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
+
+// ✅ File Upload Middleware
+app.use(fileUpload());
 
 // Serve uploaded files statically
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
