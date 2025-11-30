@@ -330,4 +330,73 @@ router.get("/search", async (req, res) => {
   }
 });
 
+// ✅ Apply for Host (Anchor)
+router.post("/apply", verifyToken, async (req, res) => {
+  try {
+    const { region, familyId, name, gender, idNumber } = req.body;
+    const hostId = req.userId;
+
+    // Validate 16-digit ID card
+    if (!idNumber || idNumber.length !== 16 || !/^\d+$/.test(idNumber)) {
+      return res.status(400).json({ success: false, message: "ID Card must be exactly 16 digits" });
+    }
+
+    const client = await pool.connect();
+    try {
+      // Check if family exists
+      const agencyCheck = await client.query("SELECT id FROM agency WHERE id = $1", [familyId]);
+      if (agencyCheck.rows.length === 0) {
+        return res.status(400).json({ success: false, message: "Family/Agency not found" });
+      }
+
+      // Check if host application already exists
+      const existingApp = await client.query(
+        "SELECT id FROM host_applications WHERE host_id = $1 AND status = 'pending'",
+        [hostId]
+      );
+
+      if (existingApp.rows.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "You already have a pending host application" 
+        });
+      }
+
+      // Check if ID card already used
+      const idCheck = await client.query(
+        "SELECT id FROM host_applications WHERE id_number = $1",
+        [idNumber]
+      );
+
+      if (idCheck.rows.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "This ID card has already been used to create a host application" 
+        });
+      }
+
+      // Create host application
+      const result = await client.query(
+        `INSERT INTO host_applications (host_id, agency_id, name, gender, id_number, status)
+         VALUES ($1, $2, $3, $4, $5, 'pending')
+         RETURNING id, host_id, agency_id, name, gender, status, created_at`,
+        [hostId, familyId, name, gender, idNumber]
+      );
+
+      console.log(`✅ Host application submitted: ${name} (ID: ${idNumber})`);
+
+      res.json({
+        success: true,
+        message: "Host application submitted successfully! Please wait for approval.",
+        data: result.rows[0],
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error("Error submitting host application:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 export default router;

@@ -51,18 +51,50 @@ export default function ApplyHostScreen({ navigation }) {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!region || !familyId || !name || !idNumber) {
       Alert.alert("Error", "Please fill in all required fields");
+      return;
+    }
+    if (idNumber.length !== 16) {
+      Alert.alert("Error", "ID Card must be exactly 16 digits (KTP)");
       return;
     }
     if (!consent) {
       Alert.alert("Error", "Please agree to the Anchor Authentication Protocol");
       return;
     }
-    Alert.alert("Success", "Your host application has been submitted!", [
-      { text: "OK", onPress: () => navigation.goBack() },
-    ]);
+
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      
+      const response = await api.post(
+        "/hosts/apply",
+        {
+          region,
+          familyId: parseInt(familyId),
+          name,
+          gender,
+          idNumber,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        Alert.alert("Success", response.data.message || "Your host application has been submitted!", [
+          { text: "OK", onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        Alert.alert("Error", response.data.message || "Failed to submit application");
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
+      if (error.response?.data?.message) {
+        Alert.alert("Error", error.response.data.message);
+      } else {
+        Alert.alert("Error", "Failed to submit application");
+      }
+    }
   };
 
   const handleProtocolPress = () => {
@@ -167,25 +199,52 @@ export default function ApplyHostScreen({ navigation }) {
           <Text style={styles.valueText}>ID card</Text>
         </View>
 
-        {/* ID */}
+        {/* ID (16 Digit KTP) */}
         <View style={styles.row}>
-          <Text style={styles.label}>ID</Text>
-          <TextInput
-            style={styles.input}
-            placeholder=""
-            placeholderTextColor="#bbb"
-            value={idNumber}
-            onChangeText={setIdNumber}
-            keyboardType="numeric"
-          />
+          <Text style={styles.label}>ID (16 Digit KTP)</Text>
+          <View style={{ flex: 1, marginLeft: 20 }}>
+            <TextInput
+              style={[styles.input, idNumber.length === 16 ? styles.inputValid : idNumber.length > 0 ? styles.inputInvalid : null]}
+              placeholder="16 digits"
+              placeholderTextColor="#bbb"
+              value={idNumber}
+              onChangeText={(text) => {
+                const numericText = text.replace(/[^0-9]/g, '');
+                if (numericText.length <= 16) {
+                  setIdNumber(numericText);
+                }
+              }}
+              keyboardType="numeric"
+              maxLength={16}
+            />
+            {idNumber.length > 0 && (
+              <Text style={styles.digitCounter}>
+                {idNumber.length}/16 digits
+              </Text>
+            )}
+          </View>
         </View>
       </ScrollView>
 
       {/* Footer */}
       <View style={styles.footer}>
         {/* Submit Button */}
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitText}>Confirm submission</Text>
+        <TouchableOpacity 
+          style={[
+            styles.submitButton,
+            region && familyId && name && idNumber.length === 16 && consent ? styles.submitButtonActive : styles.submitButtonDisabled
+          ]} 
+          onPress={handleSubmit}
+          disabled={!region || !familyId || !name || idNumber.length !== 16 || !consent}
+        >
+          <Text 
+            style={[
+              styles.submitText,
+              region && familyId && name && idNumber.length === 16 && consent ? styles.submitTextActive : styles.submitTextDisabled
+            ]}
+          >
+            Confirm submission
+          </Text>
         </TouchableOpacity>
 
         {/* Consent Checkbox */}
@@ -314,16 +373,40 @@ const styles = StyleSheet.create({
     borderTopColor: "#f0f0f0",
   },
   submitButton: {
-    backgroundColor: "#E0E0E0",
     paddingVertical: 16,
     borderRadius: 25,
     alignItems: "center",
     marginBottom: 15,
   },
+  submitButtonActive: {
+    backgroundColor: "#6EE096",
+  },
+  submitButtonDisabled: {
+    backgroundColor: "#E0E0E0",
+  },
   submitText: {
     fontSize: 16,
-    color: "#999",
     fontWeight: "500",
+  },
+  submitTextActive: {
+    color: "#fff",
+  },
+  submitTextDisabled: {
+    color: "#999",
+  },
+  inputValid: {
+    borderBottomColor: "#6EE096",
+    borderBottomWidth: 2,
+  },
+  inputInvalid: {
+    borderBottomColor: "#FF6B6B",
+    borderBottomWidth: 2,
+  },
+  digitCounter: {
+    fontSize: 12,
+    color: "#bbb",
+    marginTop: 4,
+    textAlign: "right",
   },
   consentRow: {
     flexDirection: "row",
