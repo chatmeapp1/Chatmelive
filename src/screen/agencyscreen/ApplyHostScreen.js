@@ -13,11 +13,13 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import RegionPickerModal from "../../components/RegionPickerModal";
 import api from "../../utils/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ApplyHostScreen({ navigation }) {
   const [region, setRegion] = useState("");
+  const [showRegionPicker, setShowRegionPicker] = useState(false);
   const [userId, setUserId] = useState("");
   const [familyId, setFamilyId] = useState("");
   const [name, setName] = useState("");
@@ -50,7 +52,7 @@ export default function ApplyHostScreen({ navigation }) {
   };
 
   const handleSubmit = () => {
-    if (!familyId || !name || !idNumber) {
+    if (!region || !familyId || !name || !idNumber) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
@@ -90,9 +92,17 @@ export default function ApplyHostScreen({ navigation }) {
       {/* Form */}
       <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
         {/* Region */}
-        <TouchableOpacity style={styles.row}>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => setShowRegionPicker(true)}
+        >
           <Text style={styles.label}>Region</Text>
-          <Ionicons name="chevron-forward" size={20} color="#aaa" />
+          <View style={styles.rowRight}>
+            {region ? (
+              <Text style={styles.valueText}>{region}</Text>
+            ) : null}
+            <Ionicons name="chevron-forward" size={20} color="#aaa" />
+          </View>
         </TouchableOpacity>
 
         {/* User ID */}
@@ -194,6 +204,13 @@ export default function ApplyHostScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Region Picker Modal */}
+      <RegionPickerModal
+        visible={showRegionPicker}
+        onClose={() => setShowRegionPicker(false)}
+        onSelect={(selectedRegion) => setRegion(selectedRegion)}
+      />
     </View>
   );
 }
@@ -238,6 +255,11 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
+  },
+  rowRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   label: {
     fontSize: 16,
