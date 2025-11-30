@@ -16,9 +16,10 @@ export const useAdminStore = create((set, get) => ({
     set({ loading: true });
     try {
       const { data } = await APIs.agencyAPI.getAll();
-      set({ agencies: data, error: null });
+      set({ agencies: data?.data || data || [], error: null });
     } catch (err) {
-      set({ error: err.message });
+      console.error('Error fetching agencies:', err);
+      set({ error: err.message, agencies: [] });
     } finally {
       set({ loading: false });
     }
@@ -67,9 +68,10 @@ export const useAdminStore = create((set, get) => ({
       const { data } = agencyId
         ? await APIs.hostsAPI.getByAgency(agencyId)
         : await APIs.hostsAPI.getAll();
-      set({ hosts: data, error: null });
+      set({ hosts: data?.data || data || [], error: null });
     } catch (err) {
-      set({ error: err.message });
+      console.error('Error fetching hosts:', err);
+      set({ error: err.message, hosts: [] });
     } finally {
       set({ loading: false });
     }
@@ -89,9 +91,10 @@ export const useAdminStore = create((set, get) => ({
     set({ loading: true });
     try {
       const { data } = await APIs.usersAPI.getAll();
-      set({ users: data, error: null });
+      set({ users: data?.data || data || [], error: null });
     } catch (err) {
-      set({ error: err.message });
+      console.error('Error fetching users:', err);
+      set({ error: err.message, users: [] });
     } finally {
       set({ loading: false });
     }
@@ -120,9 +123,10 @@ export const useAdminStore = create((set, get) => ({
     set({ loading: true });
     try {
       const { data } = await APIs.giftsAPI.getAll();
-      set({ gifts: data, error: null });
+      set({ gifts: data?.data || data || [], error: null });
     } catch (err) {
-      set({ error: err.message });
+      console.error('Error fetching gifts:', err);
+      set({ error: err.message, gifts: [] });
     } finally {
       set({ loading: false });
     }
@@ -151,9 +155,10 @@ export const useAdminStore = create((set, get) => ({
     set({ loading: true });
     try {
       const { data } = await APIs.mallAPI.getAll();
-      set({ mall: data, error: null });
+      set({ mall: data?.data || data || [], error: null });
     } catch (err) {
-      set({ error: err.message });
+      console.error('Error fetching mall:', err);
+      set({ error: err.message, mall: [] });
     } finally {
       set({ loading: false });
     }
