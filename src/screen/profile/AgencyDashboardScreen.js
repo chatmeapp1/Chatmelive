@@ -113,7 +113,7 @@ export default function AgencyDashboardScreen({ navigation }) {
       id: 4,
       title: "Member active days",
       icon: "calendar",
-      screen: "AgencyLiveStats",
+      screen: "AgencyActiveDays",
       color: "#FFA500",
     },
     {

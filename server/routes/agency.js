@@ -545,6 +545,49 @@ router.post("/:agencyId/upload-logo", verifyAgency, async (req, res) => {
   }
 });
 
+// Get active days for all members of an agency (3 hours = 1 day)
+router.get("/:agencyId/active-days", verifyAgency, async (req, res) => {
+  const { agencyId } = req.params;
+  const { period = "month" } = req.query;
+  const client = await pool.connect();
+
+  try {
+    let dateFilter = "";
+    if (period === "week") {
+      dateFilter = "AND ls.start_time >= NOW() - INTERVAL '7 days'";
+    } else if (period === "month") {
+      dateFilter = "AND DATE_TRUNC('month', ls.start_time) = DATE_TRUNC('month', CURRENT_DATE)";
+    }
+
+    const result = await client.query(
+      `SELECT 
+        ha.id,
+        ha.host_id as user_id,
+        u.name,
+        u.avatar_url,
+        CEIL(COALESCE(SUM(ls.duration_seconds), 0) / (3 * 3600.0)) as active_days,
+        (CASE WHEN u.role = 'president' THEN 'President' ELSE NULL END) as badge
+       FROM host_applications ha
+       JOIN users u ON ha.host_id = u.id
+       LEFT JOIN live_sessions ls ON ls.host_id = u.id ${dateFilter}
+       WHERE ha.agency_id = $1 AND ha.status = 'approved'
+       GROUP BY ha.id, ha.host_id, u.name, u.avatar_url, u.role
+       ORDER BY active_days DESC, u.name ASC`,
+      [agencyId]
+    );
+
+    res.json({
+      success: true,
+      data: result.rows,
+    });
+  } catch (error) {
+    console.error("Error fetching active days:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
 // Get all members of an agency
 router.get("/:agencyId/members", verifyAgency, async (req, res) => {
   const { agencyId } = req.params;
