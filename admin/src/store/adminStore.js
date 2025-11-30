@@ -8,6 +8,8 @@ export const useAdminStore = create((set, get) => ({
   users: [],
   gifts: [],
   mall: [],
+  totalIncome: 0,
+  hostsIncome: [],
   loading: false,
   error: null,
 
@@ -161,6 +163,27 @@ export const useAdminStore = create((set, get) => ({
       set({ error: err.message, mall: [] });
     } finally {
       set({ loading: false });
+    }
+  },
+
+  // ============ INCOME ============
+  fetchTotalIncome: async () => {
+    try {
+      const { data } = await APIs.incomeAPI.getTotalAllHosts();
+      set({ totalIncome: data?.data?.total_income || 0, error: null });
+    } catch (err) {
+      console.error('Error fetching total income:', err);
+      set({ error: err.message });
+    }
+  },
+
+  fetchHostsIncome: async () => {
+    try {
+      const { data } = await APIs.incomeAPI.getHostsDetail();
+      set({ hostsIncome: data?.data || [], error: null });
+    } catch (err) {
+      console.error('Error fetching hosts income:', err);
+      set({ error: err.message, hostsIncome: [] });
     }
   },
 

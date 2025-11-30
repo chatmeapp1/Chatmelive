@@ -84,6 +84,12 @@ export const analyticsAPI = {
   getMonthlyStats: () => api.get('/admin/hosts/stats/monthly'),
 };
 
+// Income API
+export const incomeAPI = {
+  getTotalAllHosts: () => api.get('/admin/income/total-all-hosts'),
+  getHostsDetail: () => api.get('/admin/income/hosts-detail'),
+};
+
 // Super Admin API
 export const superAdminAPI = {
   transferCoin: (data) => api.post('/super-admin/transfer-coin', data),
