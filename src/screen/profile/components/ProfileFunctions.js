@@ -96,7 +96,7 @@ export default function ProfileFunctions() {
     <View style={styles.container}>
       <Text style={styles.title}>Fungsi umum</Text>
 
-      <View style={styles.grid}>
+      <View style={styles.iconsRow}>
         {functions.map((item, index) => {
           const enterAnim = animations[index].interpolate({
             inputRange: [0, 1],
@@ -111,7 +111,7 @@ export default function ProfileFunctions() {
               {
                 rotate: pressAnimations[index].interpolate({
                   inputRange: [0.9, 1],
-                  outputRange: ["-5deg", "0deg"],
+                  outputRange: ["-8deg", "0deg"],
                 }),
               },
             ],
@@ -121,32 +121,16 @@ export default function ProfileFunctions() {
             <Animated.View
               key={item.id}
               style={[
-                styles.itemWrapper,
-                index === 4 ? styles.centerLastItem : null, // ✅ item ke-5 biar di tengah
+                styles.iconItemWrapper,
                 { opacity: animations[index], ...combinedAnim },
               ]}
             >
               <TouchableWithoutFeedback
                 onPress={() => handlePress(index, item.route)}
               >
-                <LinearGradient
-                  colors={["#3EDC81", "#63EEA2", "#B3FAD5"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.card}
-                >
-                  {/* wrapper icon */}
-                  <View
-                    style={[
-                      styles.iconWrapper,
-                      item.id === "4" && styles.iconGameShadow,
-                    ]}
-                  >
-                    <Image source={item.icon} style={styles.iconImage} />
-                  </View>
-
-                  <Text style={styles.label}>{item.label}</Text>
-                </LinearGradient>
+                <View style={styles.iconContainer}>
+                  <Image source={item.icon} style={styles.iconOnly} />
+                </View>
               </TouchableWithoutFeedback>
             </Animated.View>
           );
@@ -162,7 +146,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     marginHorizontal: 16,
     borderRadius: 14,
-    padding: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     marginTop: 14,
     shadowColor: "#00C67A",
     shadowOpacity: 0.15,
@@ -173,63 +158,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#222",
-    marginBottom: 10,
+    marginBottom: 12,
   },
 
-  grid: {
+  iconsRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-
-  itemWrapper: {
-    width: "48%",
-    marginVertical: 6,
-  },
-
-  // ✅ Item ke-5 biar pas tengah
-  centerLastItem: {
-    width: "48%",
-    alignSelf: "center",
-  },
-
-  card: {
+    justifyContent: "space-around",
     alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 12,
-    paddingVertical: 18,
-    shadowColor: "#00B96E",
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 4,
   },
 
-  iconWrapper: {
+  iconItemWrapper: {
+    width: 60,
+    height: 60,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  iconContainer: {
+    width: 52,
+    height: 52,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    backgroundColor: "transparent",
+  },
+
+  iconOnly: {
     width: 48,
     height: 48,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  iconGameShadow: {
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-
-  iconImage: {
-    width: 38,
-    height: 38,
     resizeMode: "contain",
-  },
-
-  label: {
-    color: "#054D32",
-    fontWeight: "600",
-    marginTop: 6,
-    fontSize: 14,
   },
 });
