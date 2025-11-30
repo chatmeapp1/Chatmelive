@@ -24,6 +24,7 @@ export default function AgencyDashboardScreen({ navigation }) {
   const [agencyData, setAgencyData] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [agencyLogo, setAgencyLogo] = useState(null);
+  const [logoError, setLogoError] = useState(false);
   const [stats, setStats] = useState({
     totalHosts: 0,
     thisWeekIncome: 0,
@@ -186,11 +187,13 @@ export default function AgencyDashboardScreen({ navigation }) {
               activeOpacity={0.7}
             >
               <View style={styles.logoBg}>
-                {agencyLogo ? (
+                {agencyLogo && !logoError ? (
                   <>
                     <Image
                       source={{ uri: agencyLogo }}
                       style={styles.logoImage}
+                      onError={() => setLogoError(true)}
+                      onLoadStart={() => setLogoError(false)}
                     />
                     <View style={styles.uploadOverlay}>
                       <FontAwesome name="camera" size={16} color="#fff" />
