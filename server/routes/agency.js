@@ -70,9 +70,26 @@ const verifyAgency = async (req, res, next) => {
 
 // Get agency profile
 router.get("/profile", verifyAgency, async (req, res) => {
+  const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+    ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+    : "http://localhost:8000";
+  
+  const agencyData = { ...req.agency };
+  
+  // Add full URLs to image fields
+  if (agencyData.logo_url && !agencyData.logo_url.startsWith("http")) {
+    agencyData.logo_url = `${baseUrl}${agencyData.logo_url}`;
+  }
+  if (agencyData.id_photo_front && !agencyData.id_photo_front.startsWith("http")) {
+    agencyData.id_photo_front = `${baseUrl}${agencyData.id_photo_front}`;
+  }
+  if (agencyData.id_photo_back && !agencyData.id_photo_back.startsWith("http")) {
+    agencyData.id_photo_back = `${baseUrl}${agencyData.id_photo_back}`;
+  }
+  
   res.json({
     success: true,
-    data: req.agency,
+    data: agencyData,
   });
 });
 
