@@ -104,9 +104,9 @@ export default function AgencyDashboardScreen({ navigation }) {
     },
     {
       id: 3,
-      title: "Anggota Hapus",
+      title: "Manajemen Member",
       icon: "users",
-      screen: "AgencyApproveHost",
+      screen: "AgencyMemberManagement",
       color: "#FFA500",
     },
     {
