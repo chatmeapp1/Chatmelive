@@ -78,12 +78,28 @@ export default function AgencyDashboardScreen({ navigation }) {
 
   const menuItems = [
     {
+      id: "approve",
+      title: "Approve Host",
+      description: "Review & approve host applications",
+      icon: "checkmark-circle",
+      screen: "AgencyApproveHost",
+      color: ["#9AEC9A", "#63EEA2"],
+    },
+    {
+      id: "addhost",
+      title: "Add Host",
+      description: "Invite new host ke agency",
+      icon: "person-add",
+      screen: "AgencyAddHost",
+      color: ["#667eea", "#764ba2"],
+    },
+    {
       id: "hosts",
       title: "List Host",
       description: "Lihat semua host yang bergabung",
       icon: "people",
       screen: "AgencyHostList",
-      color: ["#667eea", "#764ba2"],
+      color: ["#f093fb", "#f5576c"],
     },
     {
       id: "income",
@@ -91,7 +107,7 @@ export default function AgencyDashboardScreen({ navigation }) {
       description: "Harian, Mingguan, Bulanan",
       icon: "cash",
       screen: "AgencyHostIncome",
-      color: ["#f093fb", "#f5576c"],
+      color: ["#4facfe", "#00f2fe"],
     },
     {
       id: "live",
@@ -99,7 +115,7 @@ export default function AgencyDashboardScreen({ navigation }) {
       description: "Statistik live harian & mingguan",
       icon: "radio",
       screen: "AgencyLiveStats",
-      color: ["#4facfe", "#00f2fe"],
+      color: ["#43e97b", "#38f9d7"],
     },
     {
       id: "salary",
@@ -107,7 +123,7 @@ export default function AgencyDashboardScreen({ navigation }) {
       description: "Approval gaji mingguan",
       icon: "wallet",
       screen: "AgencySalaryApproval",
-      color: ["#43e97b", "#38f9d7"],
+      color: ["#fa709a", "#fee140"],
     },
     {
       id: "total",
@@ -115,7 +131,7 @@ export default function AgencyDashboardScreen({ navigation }) {
       description: "Pendapatan semua host",
       icon: "stats-chart",
       screen: "AgencyTotalIncome",
-      color: ["#fa709a", "#fee140"],
+      color: ["#FF6B6B", "#FFB3B3"],
     },
   ];
 

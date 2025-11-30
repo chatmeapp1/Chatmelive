@@ -42,6 +42,8 @@ import LanguageSettingsScreen from "../screen/profile/LanguageSettingsScreen";
 import BlacklistScreen from "../screen/profile/BlacklistScreen";
 import ShopScreen from "../screen/profile/ShopScreen";
 import AgencyDashboardScreen from "../screen/profile/AgencyDashboardScreen";
+import AgencyApproveHostScreen from "../screen/profile/AgencyApproveHostScreen";
+import AgencyAddHostScreen from "../screen/profile/AgencyAddHostScreen";
 import AgencyHostListScreen from "../screen/profile/AgencyHostListScreen";
 import AgencyHostIncomeScreen from "../screen/profile/AgencyHostIncomeScreen";
 import AgencyLiveStatsScreen from "../screen/profile/AgencyLiveStatsScreen";
@@ -174,6 +176,8 @@ export default function ProfileNavigator() {
 
       {/* Agency Dashboard Routes */}
       <Stack.Screen name="AgencyDashboard" component={AgencyDashboardScreen} />
+      <Stack.Screen name="AgencyApproveHost" component={AgencyApproveHostScreen} />
+      <Stack.Screen name="AgencyAddHost" component={AgencyAddHostScreen} />
       <Stack.Screen name="AgencyHostList" component={AgencyHostListScreen} />
       <Stack.Screen name="AgencyHostIncome" component={AgencyHostIncomeScreen} />
       <Stack.Screen name="AgencyLiveStats" component={AgencyLiveStatsScreen} />

@@ -384,6 +384,114 @@ router.get("/:agencyId/total-income", verifyAgency, async (req, res) => {
   }
 });
 
+// ✅ Get Host Applications by Agency
+router.get("/:agencyId/host-applications", verifyAgency, async (req, res) => {
+  const { agencyId } = req.params;
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT ha.id, ha.host_id, ha.name, ha.gender, ha.id_number, ha.status, ha.created_at,
+              u.username, u.name as user_name
+       FROM host_applications ha
+       LEFT JOIN users u ON ha.host_id = u.id
+       WHERE ha.agency_id = $1
+       ORDER BY ha.created_at DESC`,
+      [agencyId]
+    );
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error fetching host applications:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+// ✅ Approve Host Application (Agency)
+router.post("/host-application/:appId/approve", verifyAgency, async (req, res) => {
+  const { appId } = req.params;
+  const client = await pool.connect();
+  try {
+    await client.query(
+      `UPDATE host_applications SET status = 'approved', approved_at = NOW() WHERE id = $1`,
+      [appId]
+    );
+    console.log(`✅ Host application approved by agency: ${appId}`);
+    res.json({ success: true, message: "Host application approved" });
+  } catch (error) {
+    console.error("Error approving host application:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+// ✅ Reject Host Application (Agency)
+router.post("/host-application/:appId/reject", verifyAgency, async (req, res) => {
+  const { appId } = req.params;
+  const client = await pool.connect();
+  try {
+    await client.query(
+      `UPDATE host_applications SET status = 'rejected', approved_at = NOW() WHERE id = $1`,
+      [appId]
+    );
+    console.log(`❌ Host application rejected by agency: ${appId}`);
+    res.json({ success: true, message: "Host application rejected" });
+  } catch (error) {
+    console.error("Error rejecting host application:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+// ✅ Add Host to Agency (Send Invitation)
+router.post("/add-host", verifyAgency, async (req, res) => {
+  const { hostUserId, agencyId } = req.body;
+  const client = await pool.connect();
+  try {
+    // Verify host user exists
+    const hostCheck = await client.query("SELECT id FROM users WHERE id = $1", [hostUserId]);
+    if (hostCheck.rows.length === 0) {
+      return res.status(400).json({ success: false, message: "Host user not found" });
+    }
+
+    // Check if host already has an application for this agency
+    const existingApp = await client.query(
+      "SELECT id FROM host_applications WHERE host_id = $1 AND agency_id = $2",
+      [hostUserId, agencyId]
+    );
+
+    if (existingApp.rows.length > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Host already has an application for this agency" 
+      });
+    }
+
+    // Create invitation (pending host application)
+    const result = await client.query(
+      `INSERT INTO host_applications (host_id, agency_id, status)
+       VALUES ($1, $2, 'pending')
+       RETURNING id, host_id, agency_id, status, created_at`,
+      [hostUserId, agencyId]
+    );
+
+    console.log(`✅ Host invitation sent: User ${hostUserId} to Agency ${agencyId}`);
+
+    res.json({
+      success: true,
+      message: "Host invitation sent successfully!",
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error("Error adding host to agency:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
 export default router;
 
 // Apply for Agency
