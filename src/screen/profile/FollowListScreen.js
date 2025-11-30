@@ -31,19 +31,26 @@ export default function FollowListScreen() {
   const loadData = async () => {
     setLoading(true);
     try {
+      console.log(`📱 Loading ${activeTab} data...`);
       if (activeTab === "following") {
         const response = await api.get("/follows/following");
+        console.log("✅ Following response:", response.data);
         if (response.data.success) {
           setFollowingList(response.data.data);
         }
       } else {
         const response = await api.get("/follows/followers");
+        console.log("✅ Followers response:", response.data);
         if (response.data.success) {
           setFollowersList(response.data.data);
         }
       }
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error("❌ Error loading data:", error.message || error);
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
     } finally {
       setLoading(false);
     }

@@ -189,7 +189,10 @@ export default function ProfileScreen() {
           <View style={styles.statsRow}>
             <TouchableOpacity 
               style={styles.statItem}
-              onPress={() => navigation.navigate("FollowListScreen", { tab: "following" })}
+              onPress={() => {
+                console.log("📱 Navigating to FollowListScreen - following");
+                navigation.navigate("FollowListScreen", { tab: "following" });
+              }}
             >
               <Text style={styles.statValue}>{followCounts.following}</Text>
               <Text style={styles.statLabel}>Ikuti</Text>
@@ -197,7 +200,10 @@ export default function ProfileScreen() {
             <View style={styles.divider} />
             <TouchableOpacity 
               style={styles.statItem}
-              onPress={() => navigation.navigate("FollowListScreen", { tab: "followers" })}
+              onPress={() => {
+                console.log("📱 Navigating to FollowListScreen - followers");
+                navigation.navigate("FollowListScreen", { tab: "followers" });
+              }}
             >
               <Text style={styles.statValue}>{followCounts.followers}</Text>
               <Text style={styles.statLabel}>Penggemar</Text>
