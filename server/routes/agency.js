@@ -545,6 +545,140 @@ router.post("/:agencyId/upload-logo", verifyAgency, async (req, res) => {
   }
 });
 
+// Get all members of an agency
+router.get("/:agencyId/members", verifyAgency, async (req, res) => {
+  const { agencyId } = req.params;
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(
+      `SELECT 
+        ha.id,
+        ha.host_id as user_id,
+        u.name,
+        u.avatar_url,
+        u.phone,
+        ha.created_at,
+        ha.approved_at,
+        ha.status,
+        COALESCE(SUM(hi.income), 0) as monthly_income,
+        (CASE WHEN u.role = 'president' THEN 'President' ELSE NULL END) as badge
+       FROM host_applications ha
+       JOIN users u ON ha.host_id = u.id
+       LEFT JOIN host_income hi ON hi.host_id = u.id 
+         AND DATE_TRUNC('month', hi.created_at) = DATE_TRUNC('month', CURRENT_DATE)
+       WHERE ha.agency_id = $1 AND ha.status = 'approved'
+       GROUP BY ha.id, ha.host_id, u.name, u.avatar_url, u.phone, ha.created_at, ha.approved_at, ha.status, u.role
+       ORDER BY ha.created_at DESC`,
+      [agencyId]
+    );
+
+    res.json({
+      success: true,
+      data: result.rows,
+    });
+  } catch (error) {
+    console.error("Error fetching members:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+// Delete a member from agency (Tuesday restriction)
+router.delete("/:agencyId/members/:memberId", verifyAgency, async (req, res) => {
+  const { agencyId, memberId } = req.params;
+  const client = await pool.connect();
+
+  try {
+    // Check if today is Tuesday (GMT+7)
+    const now = new Date();
+    const gmt7Time = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+    const dayOfWeek = gmt7Time.getUTCDay();
+
+    if (dayOfWeek !== 2) {
+      // Tuesday = 2 in JavaScript (0=Sunday, 1=Monday, 2=Tuesday...)
+      return res.status(403).json({
+        success: false,
+        message: "Host hanya dapat dihapus pada hari Selasa (GMT+7)",
+      });
+    }
+
+    // Verify the member belongs to this agency
+    const memberCheck = await client.query(
+      `SELECT id FROM host_applications WHERE id = $1 AND agency_id = $2`,
+      [memberId, agencyId]
+    );
+
+    if (memberCheck.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Member not found",
+      });
+    }
+
+    const hostId = memberCheck.rows[0].id;
+
+    // Get the host_id for cascade deletion
+    const hostResult = await client.query(
+      `SELECT host_id FROM host_applications WHERE id = $1`,
+      [memberId]
+    );
+
+    if (hostResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Member not found",
+      });
+    }
+
+    const actualHostId = hostResult.rows[0].host_id;
+
+    // Delete in order: host_applications → host_income → live_sessions
+    // Start transaction
+    await client.query("BEGIN");
+
+    try {
+      // Delete host_applications record
+      await client.query(
+        `DELETE FROM host_applications WHERE id = $1`,
+        [memberId]
+      );
+
+      // Delete related host_income records
+      await client.query(
+        `DELETE FROM host_income WHERE host_id = $1`,
+        [actualHostId]
+      );
+
+      // Delete related live_sessions records
+      await client.query(
+        `DELETE FROM live_sessions WHERE host_id = $1`,
+        [actualHostId]
+      );
+
+      await client.query("COMMIT");
+
+      console.log(
+        `✅ Member ${actualHostId} deleted from agency ${agencyId}`
+      );
+
+      res.json({
+        success: true,
+        message: "Member deleted successfully",
+      });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    }
+  } catch (error) {
+    console.error("Error deleting member:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
 export default router;
 
 // Apply for Agency
