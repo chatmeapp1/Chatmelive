@@ -119,10 +119,9 @@ export default function AgencyDashboardScreen({ navigation }) {
     {
       id: 5,
       title: "Sertifikasi informasi pemimpin serikat",
-      status: "sedang diverifikasi",
       icon: "file-text",
+      screen: "AgencyCertification",
       color: "#FFA500",
-      disabled: true,
     },
     {
       id: 6,

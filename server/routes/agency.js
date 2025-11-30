@@ -791,3 +791,127 @@ router.post("/apply", async (req, res) => {
   }
 });
 
+
+// Get agency certification data
+router.get("/:agencyId/certification", verifyAgency, async (req, res) => {
+  const { agencyId } = req.params;
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(
+      `SELECT id, family_name, user_id, phone, email, address, 
+              id_photo_front, id_photo_back, certification_status
+       FROM agency WHERE id = $1`,
+      [agencyId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Agency not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error("Error fetching certification data:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+// Submit agency certification data
+router.post("/:agencyId/certification", verifyAgency, async (req, res) => {
+  const { agencyId } = req.params;
+  const { phone, email, address } = req.body;
+  const client = await pool.connect();
+
+  try {
+    // Validate required fields
+    if (!phone || !email || !address) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone, email, and address are required",
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email format",
+      });
+    }
+
+    // Handle file uploads
+    let idPhotoFront = null;
+    let idPhotoBack = null;
+
+    if (req.files && req.files.id_photo_front) {
+      const file = req.files.id_photo_front;
+      const filename = `agency-id-front-${agencyId}-${Date.now()}.jpg`;
+      const uploadPath = path.join(__dirname, "../uploads/agency-ids", filename);
+
+      if (!fs.existsSync(path.dirname(uploadPath))) {
+        fs.mkdirSync(path.dirname(uploadPath), { recursive: true });
+      }
+
+      await file.mv(uploadPath);
+      idPhotoFront = `/uploads/agency-ids/${filename}`;
+    }
+
+    if (req.files && req.files.id_photo_back) {
+      const file = req.files.id_photo_back;
+      const filename = `agency-id-back-${agencyId}-${Date.now()}.jpg`;
+      const uploadPath = path.join(__dirname, "../uploads/agency-ids", filename);
+
+      if (!fs.existsSync(path.dirname(uploadPath))) {
+        fs.mkdirSync(path.dirname(uploadPath), { recursive: true });
+      }
+
+      await file.mv(uploadPath);
+      idPhotoBack = `/uploads/agency-ids/${filename}`;
+    }
+
+    // Update agency with certification data
+    const updateQuery = `
+      UPDATE agency 
+      SET phone = $1, 
+          email = $2, 
+          address = $3,
+          certification_status = 'pending_review',
+          ${idPhotoFront ? "id_photo_front = $4," : ""}
+          ${idPhotoBack ? `id_photo_back = ${idPhotoFront ? "$5" : "$4"},` : ""}
+          updated_at = NOW()
+      WHERE id = $6
+      RETURNING *
+    `;
+
+    const params = [phone, email, address];
+    if (idPhotoFront) params.push(idPhotoFront);
+    if (idPhotoBack) params.push(idPhotoBack);
+    params.push(agencyId);
+
+    const result = await client.query(updateQuery, params);
+
+    console.log(
+      `✅ Certification submitted for agency ${agencyId}`
+    );
+
+    res.json({
+      success: true,
+      message: "Certification data submitted for review",
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error("Error submitting certification:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
