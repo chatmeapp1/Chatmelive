@@ -915,3 +915,79 @@ router.post("/:agencyId/certification", verifyAgency, async (req, res) => {
     client.release();
   }
 });
+
+// Get bank account info
+router.get("/:agencyId/bank-account", verifyAgency, async (req, res) => {
+  const { agencyId } = req.params;
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(
+      `SELECT id, family_name, user_id, country, bank_name, bank_account, bank_username
+       FROM agency WHERE id = $1`,
+      [agencyId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Agency not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error("Error fetching bank account:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+// Save/Update bank account info
+router.post("/:agencyId/bank-account", verifyAgency, async (req, res) => {
+  const { agencyId } = req.params;
+  const { country, bank_name, bank_account, bank_username } = req.body;
+  const client = await pool.connect();
+
+  try {
+    // Validate required fields
+    if (!country || !bank_name || !bank_account || !bank_username) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    const result = await client.query(
+      `UPDATE agency 
+       SET country = $1, bank_name = $2, bank_account = $3, bank_username = $4, updated_at = NOW()
+       WHERE id = $5
+       RETURNING *`,
+      [country, bank_name, bank_account, bank_username, agencyId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Agency not found",
+      });
+    }
+
+    console.log(`✅ Bank account updated for agency ${agencyId}`);
+
+    res.json({
+      success: true,
+      message: "Bank account info saved successfully",
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error("Error saving bank account:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});

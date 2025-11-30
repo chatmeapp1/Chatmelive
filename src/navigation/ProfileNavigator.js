@@ -52,6 +52,7 @@ import AgencyTotalIncomeScreen from "../screen/profile/AgencyTotalIncomeScreen";
 import AgencyMemberManagementScreen from "../screen/profile/AgencyMemberManagementScreen";
 import AgencyActiveDaysScreen from "../screen/profile/AgencyActiveDaysScreen";
 import AgencyCertificationScreen from "../screen/profile/AgencyCertificationScreen";
+import AgencyBankAccountScreen from "../screen/profile/AgencyBankAccountScreen";
 
 // Assume ExchangeScreen and ExchangeHistoryScreen are in the same directory or a similar structure
 // You might need to adjust the import path based on your actual file structure
@@ -189,6 +190,7 @@ export default function ProfileNavigator() {
       <Stack.Screen name="AgencyMemberManagement" component={AgencyMemberManagementScreen} />
       <Stack.Screen name="AgencyActiveDays" component={AgencyActiveDaysScreen} />
       <Stack.Screen name="AgencyCertification" component={AgencyCertificationScreen} />
+      <Stack.Screen name="AgencyBankAccount" component={AgencyBankAccountScreen} />
     </Stack.Navigator>
   );
 }

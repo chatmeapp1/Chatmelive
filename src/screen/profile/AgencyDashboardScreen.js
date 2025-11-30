@@ -126,10 +126,9 @@ export default function AgencyDashboardScreen({ navigation }) {
     {
       id: 6,
       title: "Informasi rekening bank",
-      status: "sedang diverifikasi",
       icon: "credit-card",
+      screen: "AgencyBankAccount",
       color: "#FFA500",
-      disabled: true,
     },
   ];
 
