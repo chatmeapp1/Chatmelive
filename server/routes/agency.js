@@ -198,15 +198,15 @@ router.get("/:agencyId/live-stats/:period", verifyAgency, async (req, res) => {
   try {
     let dateFilter = "";
     if (period === "daily") {
-      dateFilter = "AND DATE(ls.started_at) = CURRENT_DATE";
+      dateFilter = "AND DATE(ls.start_time) = CURRENT_DATE";
     } else if (period === "weekly") {
-      dateFilter = "AND ls.started_at >= NOW() - INTERVAL '7 days'";
+      dateFilter = "AND ls.start_time >= NOW() - INTERVAL '7 days'";
     }
 
     const statsResult = await client.query(
       `SELECT COUNT(*) as total_lives,
-              COALESCE(SUM(ls.viewer_count), 0) as total_viewers,
-              COALESCE(AVG(EXTRACT(EPOCH FROM (ls.ended_at - ls.started_at))/60), 0) as avg_duration
+              COALESCE(SUM(ls.total_viewers), 0) as total_viewers,
+              COALESCE(AVG(ls.duration_seconds)/60, 0) as avg_duration
        FROM live_sessions ls
        JOIN host_applications ha ON ha.host_id = ls.host_id
        WHERE ha.agency_id = $1 ${dateFilter}`,
@@ -216,8 +216,8 @@ router.get("/:agencyId/live-stats/:period", verifyAgency, async (req, res) => {
     const topHostsResult = await client.query(
       `SELECT u.name, 
               COUNT(ls.id) as live_count,
-              COALESCE(SUM(ls.viewer_count), 0) as total_viewers,
-              COALESCE(SUM(EXTRACT(EPOCH FROM (ls.ended_at - ls.started_at))/60), 0) as total_duration
+              COALESCE(SUM(ls.total_viewers), 0) as total_viewers,
+              COALESCE(SUM(ls.duration_seconds)/60, 0) as total_duration
        FROM users u
        JOIN host_applications ha ON ha.host_id = u.id
        JOIN live_sessions ls ON ls.host_id = u.id
