@@ -91,7 +91,7 @@ export default function AgencyDashboardScreen({ navigation }) {
     {
       id: 1,
       title: "Penghasilan member",
-      icon: "coins",
+      icon: "wallet",
       screen: "AgencyHostIncome",
       color: "#FFA500",
     },
@@ -202,7 +202,7 @@ export default function AgencyDashboardScreen({ navigation }) {
                   <>
                     {/* Crown */}
                     <FontAwesome
-                      name="crown"
+                      name="star"
                       size={20}
                       color="#FFD700"
                       style={styles.crown}

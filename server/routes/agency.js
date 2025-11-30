@@ -391,7 +391,7 @@ router.get("/:agencyId/host-applications", verifyAgency, async (req, res) => {
   try {
     const result = await client.query(
       `SELECT ha.id, ha.host_id, ha.name, ha.gender, ha.id_number, ha.status, ha.created_at,
-              u.username, u.name as user_name
+              u.name as user_name
        FROM host_applications ha
        LEFT JOIN users u ON ha.host_id = u.id
        WHERE ha.agency_id = $1
@@ -489,6 +489,53 @@ router.post("/add-host", verifyAgency, async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   } finally {
     client.release();
+  }
+});
+
+// ✅ Upload Agency Logo
+router.post("/:agencyId/upload-logo", verifyAgency, async (req, res) => {
+  try {
+    const { agencyId } = req.params;
+    
+    // Get file from request using express.static middleware
+    if (!req.files || !req.files.logo) {
+      return res.status(400).json({ success: false, message: "No file provided" });
+    }
+
+    const file = req.files.logo;
+    const filename = `agency-logo-${agencyId}-${Date.now()}.jpg`;
+    const uploadPath = path.join(__dirname, "../uploads/agency-logos", filename);
+
+    // Create directory if not exists
+    if (!fs.existsSync(path.dirname(uploadPath))) {
+      fs.mkdirSync(path.dirname(uploadPath), { recursive: true });
+    }
+
+    // Save file
+    await file.mv(uploadPath);
+
+    const logoUrl = `/uploads/agency-logos/${filename}`;
+
+    // Update database
+    const client = await pool.connect();
+    try {
+      await client.query(
+        `UPDATE agency SET logo_url = $1 WHERE id = $2`,
+        [logoUrl, agencyId]
+      );
+      
+      console.log(`✅ Agency logo uploaded: ${agencyId}`);
+      res.json({
+        success: true,
+        message: "Logo uploaded successfully",
+        data: { logo_url: logoUrl }
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error("Error uploading logo:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
