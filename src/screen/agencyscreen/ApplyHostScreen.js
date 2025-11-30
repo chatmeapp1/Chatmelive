@@ -56,6 +56,10 @@ export default function ApplyHostScreen({ navigation }) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
+    if (familyId.length < 6) {
+      Alert.alert("Error", "Family ID must be at least 6 digits");
+      return;
+    }
     if (idNumber.length !== 16) {
       Alert.alert("Error", "ID Card must be exactly 16 digits (KTP)");
       return;
@@ -146,14 +150,24 @@ export default function ApplyHostScreen({ navigation }) {
         {/* Join Family */}
         <View style={styles.row}>
           <Text style={styles.label}>Join Family</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Please input family ID"
-            placeholderTextColor="#bbb"
-            value={familyId}
-            onChangeText={setFamilyId}
-            keyboardType="numeric"
-          />
+          <View style={{ flex: 1, marginLeft: 20 }}>
+            <TextInput
+              style={[styles.input, familyId.length >= 6 ? styles.inputValid : familyId.length > 0 ? styles.inputInvalid : null]}
+              placeholder="6+ digit family ID"
+              placeholderTextColor="#bbb"
+              value={familyId}
+              onChangeText={(text) => {
+                const numericText = text.replace(/[^0-9]/g, '');
+                setFamilyId(numericText);
+              }}
+              keyboardType="numeric"
+            />
+            {familyId.length > 0 && (
+              <Text style={[styles.digitCounter, familyId.length >= 6 ? { color: '#6EE096' } : null]}>
+                {familyId.length} digits {familyId.length >= 6 ? '✓' : '(min 6)'}
+              </Text>
+            )}
+          </View>
         </View>
 
         {/* Name */}
@@ -232,15 +246,15 @@ export default function ApplyHostScreen({ navigation }) {
         <TouchableOpacity 
           style={[
             styles.submitButton,
-            region && familyId && name && idNumber.length === 16 && consent ? styles.submitButtonActive : styles.submitButtonDisabled
+            region && familyId.length >= 6 && name && idNumber.length === 16 && consent ? styles.submitButtonActive : styles.submitButtonDisabled
           ]} 
           onPress={handleSubmit}
-          disabled={!region || !familyId || !name || idNumber.length !== 16 || !consent}
+          disabled={!region || familyId.length < 6 || !name || idNumber.length !== 16 || !consent}
         >
           <Text 
             style={[
               styles.submitText,
-              region && familyId && name && idNumber.length === 16 && consent ? styles.submitTextActive : styles.submitTextDisabled
+              region && familyId.length >= 6 && name && idNumber.length === 16 && consent ? styles.submitTextActive : styles.submitTextDisabled
             ]}
           >
             Confirm submission

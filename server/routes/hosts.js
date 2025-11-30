@@ -336,6 +336,11 @@ router.post("/apply", verifyToken, async (req, res) => {
     const { region, familyId, name, gender, idNumber } = req.body;
     const hostId = req.userId;
 
+    // Validate family ID is numeric and 6+ digits
+    if (!familyId || familyId.toString().length < 6 || !/^\d+$/.test(familyId.toString())) {
+      return res.status(400).json({ success: false, message: "Family ID must be at least 6 digits" });
+    }
+
     // Validate 16-digit ID card
     if (!idNumber || idNumber.length !== 16 || !/^\d+$/.test(idNumber)) {
       return res.status(400).json({ success: false, message: "ID Card must be exactly 16 digits" });

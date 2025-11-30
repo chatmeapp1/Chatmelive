@@ -225,7 +225,68 @@ router.get("/hosts", verifyAdmin, async (req, res) => {
   }
 });
 
-// POST: Approve host
+// ✅ Approve Host Application
+router.post("/host-application/:appId/approve", verifyAdmin, async (req, res) => {
+  const { appId } = req.params;
+  const client = await pool.connect();
+  try {
+    await client.query(
+      `UPDATE host_applications SET status = 'approved', approved_at = NOW() WHERE id = $1`,
+      [appId]
+    );
+    console.log(`✅ Host application approved: ${appId}`);
+    res.json({ success: true, message: "Host application approved" });
+  } catch (error) {
+    console.error("Error approving host application:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+// ✅ Reject Host Application
+router.post("/host-application/:appId/reject", verifyAdmin, async (req, res) => {
+  const { appId } = req.params;
+  const client = await pool.connect();
+  try {
+    await client.query(
+      `UPDATE host_applications SET status = 'rejected', approved_at = NOW() WHERE id = $1`,
+      [appId]
+    );
+    console.log(`❌ Host application rejected: ${appId}`);
+    res.json({ success: true, message: "Host application rejected" });
+  } catch (error) {
+    console.error("Error rejecting host application:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+// ✅ Get Host Applications by Agency
+router.get("/host-applications/:agencyId", verifyAdmin, async (req, res) => {
+  const { agencyId } = req.params;
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT ha.id, ha.host_id, ha.name, ha.gender, ha.id_number, ha.status, ha.created_at,
+              u.username, u.name as user_name
+       FROM host_applications ha
+       LEFT JOIN users u ON ha.host_id = u.id
+       WHERE ha.agency_id = $1
+       ORDER BY ha.created_at DESC`,
+      [agencyId]
+    );
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error fetching host applications:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+// POST: Approve host (legacy - for compatibility)
 router.post("/host/:hostId/approve", verifyAdmin, async (req, res) => {
   const { hostId } = req.params;
   const client = await pool.connect();
