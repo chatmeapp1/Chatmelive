@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -9,20 +8,24 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../../utils/api";
+
+const { width } = Dimensions.get("window");
 
 export default function AgencyDashboardScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [agencyData, setAgencyData] = useState(null);
   const [stats, setStats] = useState({
     totalHosts: 0,
-    activeHosts: 0,
-    totalIncome: 0,
-    todayIncome: 0,
+    thisWeekIncome: 0,
+    lastMonthIncome: 0,
+    totalMembers: 138,
+    thisMonthIncome: 0,
   });
 
   useEffect(() => {
@@ -38,7 +41,6 @@ export default function AgencyDashboardScreen({ navigation }) {
         return;
       }
 
-      // Check if user has agency role
       const response = await api.get("/agency/profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -69,7 +71,11 @@ export default function AgencyDashboardScreen({ navigation }) {
       });
 
       if (response.data.success) {
-        setStats(response.data.data);
+        setStats({
+          ...stats,
+          ...response.data.data,
+          totalMembers: response.data.data.totalHosts || 138,
+        });
       }
     } catch (error) {
       console.error("Error loading stats:", error);
@@ -78,131 +84,166 @@ export default function AgencyDashboardScreen({ navigation }) {
 
   const menuItems = [
     {
-      id: "approve",
-      title: "Approve Host",
-      description: "Review & approve host applications",
-      icon: "checkmark-circle",
-      screen: "AgencyApproveHost",
-      color: ["#9AEC9A", "#63EEA2"],
-    },
-    {
-      id: "addhost",
-      title: "Add Host",
-      description: "Invite new host ke agency",
-      icon: "person-add",
-      screen: "AgencyAddHost",
-      color: ["#667eea", "#764ba2"],
-    },
-    {
-      id: "hosts",
-      title: "List Host",
-      description: "Lihat semua host yang bergabung",
-      icon: "people",
-      screen: "AgencyHostList",
-      color: ["#f093fb", "#f5576c"],
-    },
-    {
-      id: "income",
-      title: "Pendapatan Host",
-      description: "Harian, Mingguan, Bulanan",
-      icon: "cash",
+      id: 1,
+      title: "Penghasilan member",
+      icon: "coins",
       screen: "AgencyHostIncome",
-      color: ["#4facfe", "#00f2fe"],
+      color: "#FFA500",
     },
     {
-      id: "live",
-      title: "Total Live",
-      description: "Statistik live harian & mingguan",
-      icon: "radio",
+      id: 2,
+      title: "Undangan member",
+      icon: "user-plus",
+      screen: "AgencyAddHost",
+      color: "#FFA500",
+    },
+    {
+      id: 3,
+      title: "Anggota Hapus",
+      icon: "users",
+      screen: "AgencyApproveHost",
+      color: "#FFA500",
+    },
+    {
+      id: 4,
+      title: "Member active days",
+      icon: "calendar",
       screen: "AgencyLiveStats",
-      color: ["#43e97b", "#38f9d7"],
+      color: "#FFA500",
     },
     {
-      id: "salary",
-      title: "Gaji Pokok Host",
-      description: "Approval gaji mingguan",
-      icon: "wallet",
-      screen: "AgencySalaryApproval",
-      color: ["#fa709a", "#fee140"],
+      id: 5,
+      title: "Sertifikasi informasi pemimpin serikat",
+      status: "sedang diverifikasi",
+      icon: "file-text",
+      color: "#FFA500",
+      disabled: true,
     },
     {
-      id: "total",
-      title: "Total Income",
-      description: "Pendapatan semua host",
-      icon: "stats-chart",
-      screen: "AgencyTotalIncome",
-      color: ["#FF6B6B", "#FFB3B3"],
+      id: 6,
+      title: "Informasi rekening bank",
+      status: "sedang diverifikasi",
+      icon: "credit-card",
+      color: "#FFA500",
+      disabled: true,
     },
   ];
 
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#9AEC9A" />
+        <ActivityIndicator size="large" color="#FFA500" />
       </View>
     );
   }
 
+  // Extract agency initials for logo
+  const initials = agencyData?.family_name
+    ?.split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2) || "MM";
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#9AEC9A" />
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
       {/* Header */}
-      <LinearGradient colors={["#9AEC9A", "#63EEA2", "#B3FAD5"]} style={styles.header}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Agency Dashboard</Text>
-          <View style={{ width: 24 }} />
-        </View>
-
-        {agencyData && (
-          <View style={styles.agencyInfo}>
-            <Text style={styles.agencyName}>{agencyData.family_name}</Text>
-            <Text style={styles.agencyId}>ID: {agencyData.id}</Text>
-          </View>
-        )}
-      </LinearGradient>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={28} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Agency</Text>
+        <View style={{ width: 28 }} />
+      </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Stats Cards */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.statGradient}>
-              <Ionicons name="people" size={32} color="#fff" />
-              <Text style={styles.statValue}>{stats.totalHosts}</Text>
-              <Text style={styles.statLabel}>Total Host</Text>
-            </LinearGradient>
+        {/* Main Agency Card */}
+        <View style={styles.agencyCardContainer}>
+          <LinearGradient
+            colors={["#FF1744", "#FF6E40", "#B71C1C", "#9C27B0", "#6A1B9A"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.agencyCard}
+          >
+            {/* Left side content */}
+            <View style={styles.cardLeftContent}>
+              <Text style={styles.agencyName}>{agencyData?.family_name || "Agency Name"}</Text>
+              <Text style={styles.agencyId}>ID:{agencyData?.id || "2010"}</Text>
+
+              <Text style={styles.incomeLabel}>Total berlian bulan ini:</Text>
+              <Text style={styles.incomeValue}>{stats.thisMonthIncome || 0}</Text>
+            </View>
+
+            {/* Right side logo circle with crown */}
+            <View style={styles.cardLogo}>
+              <View style={styles.logoBg}>
+                {/* Crown */}
+                <FontAwesome
+                  name="crown"
+                  size={20}
+                  color="#FFD700"
+                  style={styles.crown}
+                />
+                {/* Initials */}
+                <Text style={styles.initials}>{initials}</Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
+
+        {/* Stats Row */}
+        <View style={styles.statsRow}>
+          <View style={styles.statBox}>
+            <Text style={styles.statValue}>{stats.thisWeekIncome || 0}</Text>
+            <Text style={styles.statLabel}>Total berlian{"\n"}minggu ini</Text>
           </View>
 
-          <View style={styles.statCard}>
-            <LinearGradient colors={["#f093fb", "#f5576c"]} style={styles.statGradient}>
-              <Ionicons name="cash" size={32} color="#fff" />
-              <Text style={styles.statValue}>{stats.todayIncome.toLocaleString()}</Text>
-              <Text style={styles.statLabel}>Income Hari Ini</Text>
-            </LinearGradient>
+          <View style={styles.statBox}>
+            <Text style={styles.statValue}>{stats.lastMonthIncome || 0}</Text>
+            <Text style={styles.statLabel}>Total berlian bulan{"\n"}lalu</Text>
+          </View>
+
+          <View style={styles.statBox}>
+            <Text style={styles.statValue}>{stats.totalMembers || 138}</Text>
+            <Text style={styles.statLabel}>Member</Text>
           </View>
         </View>
 
-        {/* Menu Grid */}
-        <View style={styles.menuGrid}>
-          {menuItems.map((item) => (
+        {/* Menu Items */}
+        <View style={styles.menuContainer}>
+          {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.id}
-              style={styles.menuCard}
-              activeOpacity={0.8}
-              onPress={() => navigation.navigate(item.screen, { agencyId: agencyData?.id })}
+              style={[styles.menuItem, index !== menuItems.length - 1 && styles.menuBorder]}
+              disabled={item.disabled}
+              onPress={() => {
+                if (!item.disabled && item.screen) {
+                  navigation.navigate(item.screen, { agencyId: agencyData?.id });
+                }
+              }}
+              activeOpacity={item.disabled ? 1 : 0.7}
             >
-              <LinearGradient colors={item.color} style={styles.menuGradient}>
-                <View style={styles.menuIconContainer}>
-                  <Ionicons name={item.icon} size={36} color="#fff" />
+              <View style={styles.menuItemLeft}>
+                <FontAwesome name={item.icon} size={24} color={item.color} />
+                <View style={styles.menuItemText}>
+                  <Text style={styles.menuTitle}>{item.title}</Text>
+                  {item.status && <Text style={styles.menuStatus}>{item.status}</Text>}
                 </View>
-                <Text style={styles.menuTitle}>{item.title}</Text>
-                <Text style={styles.menuDescription}>{item.description}</Text>
-              </LinearGradient>
+              </View>
+              {!item.disabled && (
+                <Ionicons name="chevron-forward" size={20} color="#ccc" />
+              )}
             </TouchableOpacity>
           ))}
+        </View>
+
+        {/* Warning Text */}
+        <View style={styles.warningContainer}>
+          <Text style={styles.warningText}>
+            *Penggat: Anda hanya dapat menghubungi staf resmi untuk bantuan. Kami tidak akan meminta atau memberikan informasi pribadi melalui saluran lain.
+          </Text>
         </View>
       </ScrollView>
     </View>
@@ -212,118 +253,177 @@ export default function AgencyDashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f9f9f9",
   },
   centerContent: {
     justifyContent: "center",
     alignItems: "center",
   },
   header: {
-    paddingTop: StatusBar.currentHeight || 40,
-    paddingBottom: 30,
-    paddingHorizontal: 20,
-  },
-  headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 12,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
+    fontWeight: "600",
+    color: "#333",
   },
-  agencyInfo: {
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  agencyCardContainer: {
+    marginBottom: 24,
+    borderRadius: 20,
+    overflow: "hidden",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  agencyCard: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+    minHeight: 180,
+  },
+  cardLeftContent: {
+    flex: 1,
   },
   agencyName: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#fff",
-    marginBottom: 5,
+    marginBottom: 6,
   },
   agencyId: {
     fontSize: 14,
     color: "#fff",
-    opacity: 0.9,
+    marginBottom: 16,
   },
-  content: {
-    flex: 1,
-    marginTop: -10,
+  incomeLabel: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.8)",
+    marginBottom: 8,
   },
-  statsContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    gap: 15,
-  },
-  statCard: {
-    flex: 1,
-    borderRadius: 15,
-    overflow: "hidden",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  statGradient: {
-    padding: 20,
-    alignItems: "center",
-  },
-  statValue: {
-    fontSize: 28,
+  incomeValue: {
+    fontSize: 32,
     fontWeight: "bold",
     color: "#fff",
-    marginTop: 10,
   },
-  statLabel: {
-    fontSize: 13,
-    color: "#fff",
-    marginTop: 5,
-    opacity: 0.9,
+  cardLogo: {
+    marginLeft: 20,
   },
-  menuGrid: {
-    paddingHorizontal: 15,
-    paddingBottom: 100,
-  },
-  menuCard: {
-    marginBottom: 15,
-    borderRadius: 15,
-    overflow: "hidden",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  menuGradient: {
-    padding: 20,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  menuIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "rgba(255,255,255,0.2)",
+  logoBg: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(0,0,0,0.15)",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 15,
+    borderWidth: 3,
+    borderColor: "rgba(255,255,255,0.3)",
+    position: "relative",
   },
-  menuTitle: {
-    fontSize: 18,
+  initials: {
+    fontSize: 32,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#FFD700",
+  },
+  crown: {
+    position: "absolute",
+    top: 8,
+  },
+  statsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 24,
+    gap: 12,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 6,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: "#999",
+    textAlign: "center",
+    lineHeight: 16,
+  },
+  menuContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    marginBottom: 24,
+    overflow: "hidden",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  menuItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 18,
+  },
+  menuBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  menuItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
-  menuDescription: {
+  menuItemText: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  menuTitle: {
+    fontSize: 15,
+    color: "#999",
+    fontWeight: "500",
+  },
+  menuStatus: {
     fontSize: 12,
-    color: "#fff",
-    opacity: 0.8,
-    position: "absolute",
-    bottom: 20,
-    left: 95,
+    color: "#ccc",
+    marginTop: 4,
+  },
+  warningContainer: {
+    marginBottom: 30,
+    paddingHorizontal: 4,
+  },
+  warningText: {
+    fontSize: 12,
+    color: "#FF1744",
+    fontStyle: "italic",
   },
 });
