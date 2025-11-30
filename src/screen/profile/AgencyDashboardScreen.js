@@ -26,10 +26,9 @@ export default function AgencyDashboardScreen({ navigation }) {
   const [agencyLogo, setAgencyLogo] = useState(null);
   const [logoError, setLogoError] = useState(false);
   const [stats, setStats] = useState({
-    totalHosts: 0,
+    totalMembers: 0,
     thisWeekIncome: 0,
     lastMonthIncome: 0,
-    totalMembers: 138,
     thisMonthIncome: 0,
   });
 
@@ -77,11 +76,7 @@ export default function AgencyDashboardScreen({ navigation }) {
       });
 
       if (response.data.success) {
-        setStats({
-          ...stats,
-          ...response.data.data,
-          totalMembers: response.data.data.totalHosts || 138,
-        });
+        setStats(response.data.data);
       }
     } catch (error) {
       console.error("Error loading stats:", error);
@@ -225,12 +220,12 @@ export default function AgencyDashboardScreen({ navigation }) {
           </View>
 
           <View style={styles.statBox}>
-            <Text style={styles.statValue}>{stats.lastMonthIncome || 0}</Text>
-            <Text style={styles.statLabel}>Total berlian bulan{"\n"}lalu</Text>
+            <Text style={styles.statValue}>{stats.thisMonthIncome || 0}</Text>
+            <Text style={styles.statLabel}>Total berlian bulan{"\n"}ini</Text>
           </View>
 
           <View style={styles.statBox}>
-            <Text style={styles.statValue}>{stats.totalMembers || 138}</Text>
+            <Text style={styles.statValue}>{stats.totalMembers || 0}</Text>
             <Text style={styles.statLabel}>Member</Text>
           </View>
         </View>

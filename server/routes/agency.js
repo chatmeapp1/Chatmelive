@@ -99,29 +99,51 @@ router.get("/:agencyId/stats", verifyAgency, async (req, res) => {
   const client = await pool.connect();
 
   try {
-    // Total hosts
-    const hostsResult = await client.query(
+    // Total members (approved hosts)
+    const membersResult = await client.query(
       "SELECT COUNT(*) as total FROM host_applications WHERE agency_id = $1 AND status = 'approved'",
       [agencyId]
     );
 
-    // Today income
-    const todayIncomeResult = await client.query(
-      `SELECT SUM(hi.income) as total
+    // This week income (last 7 days)
+    const weekIncomeResult = await client.query(
+      `SELECT COALESCE(SUM(hi.income), 0) as total
        FROM host_income hi
        JOIN host_applications ha ON ha.host_id = hi.host_id
        WHERE ha.agency_id = $1 
-       AND DATE(hi.created_at) = CURRENT_DATE`,
+       AND hi.created_at >= CURRENT_DATE - INTERVAL '7 days'`,
+      [agencyId]
+    );
+
+    // Last month income (previous month)
+    const lastMonthIncomeResult = await client.query(
+      `SELECT COALESCE(SUM(hi.income), 0) as total
+       FROM host_income hi
+       JOIN host_applications ha ON ha.host_id = hi.host_id
+       WHERE ha.agency_id = $1 
+       AND EXTRACT(YEAR FROM hi.created_at) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 month')
+       AND EXTRACT(MONTH FROM hi.created_at) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')`,
+      [agencyId]
+    );
+
+    // This month income (current month)
+    const thisMonthIncomeResult = await client.query(
+      `SELECT COALESCE(SUM(hi.income), 0) as total
+       FROM host_income hi
+       JOIN host_applications ha ON ha.host_id = hi.host_id
+       WHERE ha.agency_id = $1 
+       AND EXTRACT(YEAR FROM hi.created_at) = EXTRACT(YEAR FROM CURRENT_DATE)
+       AND EXTRACT(MONTH FROM hi.created_at) = EXTRACT(MONTH FROM CURRENT_DATE)`,
       [agencyId]
     );
 
     res.json({
       success: true,
       data: {
-        totalHosts: parseInt(hostsResult.rows[0].total) || 0,
-        activeLives: 0,
-        totalIncome: 0,
-        todayIncome: parseInt(todayIncomeResult.rows[0].total) || 0,
+        totalMembers: parseInt(membersResult.rows[0].total) || 0,
+        thisWeekIncome: parseInt(weekIncomeResult.rows[0].total) || 0,
+        lastMonthIncome: parseInt(lastMonthIncomeResult.rows[0].total) || 0,
+        thisMonthIncome: parseInt(thisMonthIncomeResult.rows[0].total) || 0,
       },
     });
   } catch (error) {
