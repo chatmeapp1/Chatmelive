@@ -9,17 +9,21 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../../utils/api";
+import AgencyLogoUploadModal from "../../components/AgencyLogoUploadModal";
 
 const { width } = Dimensions.get("window");
 
 export default function AgencyDashboardScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [agencyData, setAgencyData] = useState(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [agencyLogo, setAgencyLogo] = useState(null);
   const [stats, setStats] = useState({
     totalHosts: 0,
     thisWeekIncome: 0,
@@ -47,6 +51,7 @@ export default function AgencyDashboardScreen({ navigation }) {
 
       if (response.data.success) {
         setAgencyData(response.data.data);
+        setAgencyLogo(response.data.data?.logo_url);
         loadStats(response.data.data.id);
       } else {
         Alert.alert("Access Denied", "You don't have agency access", [
@@ -177,19 +182,37 @@ export default function AgencyDashboardScreen({ navigation }) {
             </View>
 
             {/* Right side logo circle with crown */}
-            <View style={styles.cardLogo}>
+            <TouchableOpacity
+              style={styles.cardLogo}
+              onPress={() => setShowUploadModal(true)}
+              activeOpacity={0.7}
+            >
               <View style={styles.logoBg}>
-                {/* Crown */}
-                <FontAwesome
-                  name="crown"
-                  size={20}
-                  color="#FFD700"
-                  style={styles.crown}
-                />
-                {/* Initials */}
-                <Text style={styles.initials}>{initials}</Text>
+                {agencyLogo ? (
+                  <>
+                    <Image
+                      source={{ uri: agencyLogo }}
+                      style={styles.logoImage}
+                    />
+                    <View style={styles.uploadOverlay}>
+                      <FontAwesome name="camera" size={16} color="#fff" />
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    {/* Crown */}
+                    <FontAwesome
+                      name="crown"
+                      size={20}
+                      color="#FFD700"
+                      style={styles.crown}
+                    />
+                    {/* Initials */}
+                    <Text style={styles.initials}>{initials}</Text>
+                  </>
+                )}
               </View>
-            </View>
+            </TouchableOpacity>
           </LinearGradient>
         </View>
 
@@ -246,6 +269,16 @@ export default function AgencyDashboardScreen({ navigation }) {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Upload Modal */}
+      <AgencyLogoUploadModal
+        isVisible={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        agencyId={agencyData?.id}
+        onUploadSuccess={(logoUrl) => {
+          setAgencyLogo(logoUrl);
+        }}
+      />
     </View>
   );
 }
@@ -335,6 +368,23 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "rgba(255,255,255,0.3)",
     position: "relative",
+    overflow: "hidden",
+  },
+  logoImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 60,
+  },
+  uploadOverlay: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   initials: {
     fontSize: 32,
