@@ -14,46 +14,14 @@ import { useNavigation } from "@react-navigation/native";
 import Svg, { Defs, LinearGradient, Stop, Polygon, Path } from "react-native-svg";
 import LottieView from "lottie-react-native";
 import getEnvVars from "../../../utils/env";
+import { getLevelBadge } from "../../../utils/levelCalculator";
 
 const { width } = Dimensions.get("window");
 
-/* ✅ Gradient warna level */
-const getLevelGradient = (level) => {
-  if (level <= 10) return ["#FF8BC9", "#FF5FB8"];
-  if (level <= 20) return ["#7ED7FF", "#4BB2FF"];
-  if (level <= 30) return ["#FFE27A", "#FF9B30"];
-  if (level <= 50) return ["#FF9B30", "#B657FF"];
-  if (level <= 70) return ["#B657FF", "#FF2D55"];
-  return ["#FF2D55", "#000000"];
-};
-
-/* ✅ Icon diamond kecil */
-const DiamondIcon = ({ colors }) => (
-  <Svg width={10} height={10} viewBox="0 0 100 100">
-    <Defs>
-      <LinearGradient id="gradDiamond" x1="0" y1="0" x2="1" y2="1">
-        <Stop offset="0" stopColor={colors[0]} />
-        <Stop offset="1" stopColor={colors[1]} />
-      </LinearGradient>
-    </Defs>
-
-    <Polygon
-      points="50,5 90,35 70,90 30,90 10,35"
-      fill="url(#gradDiamond)"
-      stroke="#fff"
-      strokeWidth="4"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
 export default function ProfileHeader({ userData }) {
   const navigation = useNavigation();
-  const userLevel = userData?.level || 1;
-  const hostLevel = 4;
-
-  const userColor = getLevelGradient(userLevel);
-  const hostColor = getLevelGradient(hostLevel);
+  const userLevel = userData?.userLevel || userData?.level || 0;
+  const hostLevel = userData?.hostLevel || 0;
 
   // ✅ Build full avatar URL
   const { API_URL } = getEnvVars();
@@ -76,23 +44,6 @@ export default function ProfileHeader({ userData }) {
     return userData.avatar;
   };
 
-  /* ✅ Animasi shine pill badge */
-  const shineAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(shineAnim, {
-        toValue: 1,
-        duration: 2400,
-        useNativeDriver: true,
-      })
-    ).start();
-  }, []);
-
-  const shineTranslate = shineAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-40, 80],
-  });
 
   return (
     <View style={styles.container}>
@@ -154,31 +105,35 @@ export default function ProfileHeader({ userData }) {
       {/* ✅ Row badge */}
       <View style={styles.badgeRow}>
 
-        {/* USER LEVEL */}
-        <View style={[styles.pillBadge, { backgroundColor: userColor[0] }]}>
-          <DiamondIcon colors={userColor} />
-          <Text style={styles.levelNumber}>{userLevel}</Text>
+        {/* USER LEVEL - dengan icon mapping */}
+        {userLevel > 0 && (
+          <View style={styles.badgeContainer}>
+            <Image
+              source={getLevelBadge(userLevel).icon}
+              style={styles.levelBadgeIcon}
+            />
+            <Text style={styles.levelBadgeNumber}>{userLevel}</Text>
+          </View>
+        )}
 
-          <Animated.View
-            style={[styles.shine, { transform: [{ translateX: shineTranslate }] }]}
-          />
-        </View>
-
-        {/* HOST LEVEL */}
-        <View style={[styles.pillBadge, { backgroundColor: hostColor[0] }]}>
-          <DiamondIcon colors={hostColor} />
-          <Text style={styles.levelNumber}>{hostLevel}</Text>
-
-          <Animated.View
-            style={[styles.shine, { transform: [{ translateX: shineTranslate }] }]}
-          />
-        </View>
+        {/* HOST LEVEL - dengan icon mapping */}
+        {hostLevel > 0 && (
+          <View style={styles.badgeContainer}>
+            <Image
+              source={getLevelBadge(hostLevel).icon}
+              style={styles.levelBadgeIcon}
+            />
+            <Text style={styles.levelBadgeNumber}>{hostLevel}</Text>
+          </View>
+        )}
 
         {/* ✅ VIP BADGE */}
-        <Image
-          source={require("../../../../assets/badge/vip/vip1.png")}
-          style={styles.vipBadge}
-        />
+        {(userData?.vipLevel || 0) > 0 && (
+          <Image
+            source={require("../../../../assets/badge/vip/vip1.png")}
+            style={styles.vipBadge}
+          />
+        )}
       </View>
     </View>
   );
@@ -266,44 +221,36 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 8,
     alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
   },
 
-  /* ✅ Kapsul badge - diperkecil sesuai ukuran VIP badge */
-  pillBadge: {
+  /* ✅ Badge container untuk level icon + number */
+  badgeContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-    marginHorizontal: 4,
-    minWidth: 40,
-    height: 24,
     justifyContent: "center",
-    overflow: "hidden",
+    position: "relative",
   },
 
-  levelNumber: {
-    fontSize: 11,
+  levelBadgeIcon: {
+    width: 28,
+    height: 28,
+    resizeMode: "contain",
+  },
+
+  levelBadgeNumber: {
+    fontSize: 10,
     fontWeight: "700",
     color: "#fff",
-    marginLeft: 3,
+    position: "absolute",
+    textAlign: "center",
   },
 
   vipBadge: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
     resizeMode: "contain",
-    marginLeft: 8,
   },
 
-  shine: {
-    position: "absolute",
-    width: 30,
-    height: 100,
-    backgroundColor: "rgba(255,255,255,0.22)",
-    transform: [{ rotate: "55deg" }],
-    top: -20,
-    left: -30,
-    borderRadius: 10,
-  },
 });
