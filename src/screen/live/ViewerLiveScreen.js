@@ -293,15 +293,30 @@ export default function ViewerLiveScreen({ route }) {
           return;
         }
       } else {
-        // For luxury gifts - no backend call, handle locally
-        // Just deduct coins without JP system
-        result = {
-          success: true,
-          saldoAkhir: coins - totalPrice,
-          hostIncome: Math.floor(totalPrice * 0.5), // 50% for luxury
-          jpWin: false,
-          message: "Luxury gift sent successfully",
-        };
+        // For luxury gifts - call separate luxury endpoint
+        const luxuryResponse = await fetch(`${API_URL}/api/luxury/send`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            receiverId: host?.id || 0,
+            giftPrice: giftData.price,
+            count: count,
+            roomId: channelName,
+          }),
+        });
+
+        result = await luxuryResponse.json();
+
+        // ❌ API FAILED
+        if (!result || !result.success) {
+          const errorMsg = result?.message || result?.error || "Unknown error";
+          console.error("❌ Luxury Gift Error:", errorMsg);
+          setInsufficientBalanceError(errorMsg);
+          return;
+        }
       }
 
       // ✅ GIFT SENT SUCCESSFULLY
