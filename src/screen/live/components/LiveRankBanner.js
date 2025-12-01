@@ -10,19 +10,22 @@ import coinBorder from "../../../../assets/decor/coinborder.png";
 export default function LiveRankBanner({
   coins = 0,
   hostId,
+  isHost = false,
 }) {
   const navigation = useNavigation();
   const [seconds, setSeconds] = useState(0);
   const [liveIncome, setLiveIncome] = useState(0);
 
-  // TIMER only
+  // TIMER only (HOST ONLY)
   useEffect(() => {
+    if (!isHost) return; // Only run timer for host
+    
     const interval = setInterval(() => {
       setSeconds((s) => s + 1);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isHost]);
 
   // Fetch live income per jam
   useEffect(() => {
@@ -54,6 +57,11 @@ export default function LiveRankBanner({
     const s = String(seconds % 60).padStart(2, "0");
     return `${h}:${m}:${s}`;
   };
+
+  // Hide timer for viewers - only show for host
+  if (!isHost) {
+    return null;
+  }
 
   return (
     <View style={styles.row}>

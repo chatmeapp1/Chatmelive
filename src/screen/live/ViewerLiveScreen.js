@@ -175,36 +175,22 @@ export default function ViewerLiveScreen({ route }) {
       }
     });
 
-    // Listen for user joined
-    socketService.onLiveUserJoined((data) => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + Math.random(),
-          user: data.username,
-          level: data.level || 1,
-          text: "bergabung ke ruangan",
-          isSystem: true,
-        },
-      ]);
-    });
-
     // Listen for viewer count
     socketService.onViewerCount((data) => {
       setViewerCount(data.count);
     });
 
-    // Listen for users joining
-    socketService.onUserJoined((data) => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          user: "System",
-          text: `${data.username} bergabung`,
-          isSystem: true,
-        },
-      ]);
+    // Listen for users joining (consolidated - using onLiveUserJoined)
+    socketService.onLiveUserJoined((data) => {
+      const message = {
+        id: Date.now() + Math.random(),
+        user: data.username || "User",
+        level: data.level || 1,
+        text: "bergabung ke ruangan",
+        isSystem: true,
+      };
+      setMessages((prev) => [...prev, message]);
+      console.log(`✅ User ${data.username} joined room`);
     });
 
     // Listen for users leaving
@@ -255,7 +241,6 @@ export default function ViewerLiveScreen({ route }) {
       socketService.removeListener("live:user-left");
       socketService.removeListener("pk:started");
       socketService.removeListener("live:jp-win");
-      socketService.removeListener("live:user-joined");
     };
   }, [viewer.id, viewer.name, channelName, loadViewersList]);
 
@@ -448,7 +433,7 @@ export default function ViewerLiveScreen({ route }) {
             }}
           />
 
-          <LiveRankBanner coins={coins} pointerEvents="box-none" />
+          <LiveRankBanner coins={coins} isHost={false} pointerEvents="box-none" />
 
           <View style={styles.systemWrapper} pointerEvents="box-none">
             <LiveSystemMessage />

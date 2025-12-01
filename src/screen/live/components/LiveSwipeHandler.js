@@ -1,10 +1,12 @@
 // src/live/components/LiveSwipeHandler.js
 
 import React, { useRef } from "react";
-import { View, PanResponder, StyleSheet } from "react-native";
+import { View, PanResponder, StyleSheet, Animated } from "react-native";
 
 export default function LiveSwipeHandler({ onSwipe }) {
   const startX = useRef(0);
+  const lastSwipeTime = useRef(0);
+  const animValue = useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -17,13 +19,37 @@ export default function LiveSwipeHandler({ onSwipe }) {
         startX.current = evt.nativeEvent.pageX;
       },
 
+      onPanResponderMove: (evt) => {
+        // ✅ Real-time smooth animation saat swipe
+        const currentX = evt.nativeEvent.pageX;
+        const progress = (currentX - startX.current) / 100;
+        Animated.timing(animValue, {
+          toValue: progress,
+          duration: 0,
+          useNativeDriver: false,
+        }).start();
+      },
+
       onPanResponderRelease: (evt) => {
         const endX = evt.nativeEvent.pageX;
         const diff = endX - startX.current;
+        const now = Date.now();
 
-        // ✅ Ambang swipe lembut
-        if (diff < -40) onSwipe(false); // hide UI
-        if (diff > 40) onSwipe(true);  // show UI
+        // ✅ Anti-spam: Prevent rapid successive swipes
+        if (now - lastSwipeTime.current < 300) return;
+        lastSwipeTime.current = now;
+
+        // ✅ Ambang swipe yang lebih responsif (lebih lembut)
+        if (diff < -30) {
+          onSwipe(false); // hide UI
+          Animated.timing(animValue, { toValue: -1, duration: 200, useNativeDriver: false }).start();
+        } else if (diff > 30) {
+          onSwipe(true);  // show UI
+          Animated.timing(animValue, { toValue: 1, duration: 200, useNativeDriver: false }).start();
+        } else {
+          // Reset animation jika tidak mencapai threshold
+          Animated.timing(animValue, { toValue: 0, duration: 150, useNativeDriver: false }).start();
+        }
       },
     })
   ).current;
