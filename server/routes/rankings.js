@@ -15,8 +15,8 @@ router.get("/top-level-users", async (req, res) => {
         u.name,
         u.avatar_url,
         u.level,
-        COALESCE(SUM(CASE WHEN g.gift_type = 'received' THEN 1 ELSE 0 END), 0) as total_gifts,
-        COALESCE(SUM(CASE WHEN g.gift_type = 'received' THEN g.gift_value ELSE 0 END), 0) as total_score
+        COALESCE(COUNT(DISTINCT g.id), 0) as total_gifts,
+        COALESCE(SUM(g.coin_value), 0) as total_score
       FROM users u
       LEFT JOIN gifts g ON u.id = g.receiver_id
       GROUP BY u.id, u.name, u.avatar_url, u.level
@@ -54,12 +54,11 @@ router.get("/top-host-users", async (req, res) => {
         u.avatar_url,
         u.level,
         COALESCE(COUNT(DISTINCT g.id), 0) as total_gifts,
-        COALESCE(SUM(CASE WHEN g.gift_type = 'received' THEN g.gift_value ELSE 0 END), 0) as total_income
+        COALESCE(SUM(g.coin_value), 0) as total_income
       FROM users u
-      LEFT JOIN gifts g ON u.id = g.receiver_id AND g.gift_type = 'received'
-      LEFT JOIN host_income hi ON u.id = hi.user_id
-      WHERE u.level > 0 OR hi.user_id IS NOT NULL
+      LEFT JOIN gifts g ON u.id = g.receiver_id
       GROUP BY u.id, u.name, u.avatar_url, u.level
+      HAVING COALESCE(COUNT(DISTINCT g.id), 0) > 0 OR u.level > 0
       ORDER BY total_income DESC, total_gifts DESC
       LIMIT 5
     `);
