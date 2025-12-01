@@ -495,8 +495,8 @@ export default function ViewerLiveScreen({ route }) {
       {/* FLOATING GIFT COMBO BUBBLE */}
       <FloatingGiftCombo activeCombo={activeCombo} />
 
-      {/* GIFT BUBBLE SIDE EFFECT */}
-      <LiveGiftEffectSide gift={giftEffect} />
+      {/* GIFT BUBBLE SIDE EFFECT - Only show if NOT in combo mode */}
+      {!activeCombo && <LiveGiftEffectSide gift={giftEffect} />}
 
       {/* BIG GIFT FULLSCREEN */}
       <BigGiftEffect gift={bigGift} />

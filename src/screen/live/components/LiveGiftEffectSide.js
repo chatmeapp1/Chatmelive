@@ -25,33 +25,15 @@ export default function LiveGiftEffectSide({ gift }) {
 
     playSound();
 
-    setGiftList((prev) => {
-      // COMBO: Jika gift + user sama
-      const existing = prev.find(
-        (g) => g.username === gift.username && g.idKey === gift.id
-      );
+    const id = Date.now();
+    const newGift = { id, ...gift };
 
-      if (existing) {
-        existing.count += gift.count;
-        return [...prev];
-      }
+    // For single gifts NOT in combo mode
+    setGiftList((prev) => [...prev, newGift]);
 
-      // ID tetap agar posisi stabil
-      const idKey = gift.id + "-" + gift.username;
-
-      return [
-        ...prev,
-        {
-          ...gift,
-          idKey,
-          bubbleId: Date.now().toString() + Math.random().toString(36),
-        },
-      ];
-    });
-
-    // Auto clear bubble
+    // Auto clear bubble after 3.5 seconds
     const timeout = setTimeout(() => {
-      setGiftList((prev) => prev.filter((g) => g.idKey !== gift.id));
+      setGiftList((prev) => prev.filter((g) => g.id !== id));
     }, 3500);
 
     return () => clearTimeout(timeout);
@@ -59,8 +41,8 @@ export default function LiveGiftEffectSide({ gift }) {
 
   return (
     <View style={styles.container} pointerEvents="none">
-      {giftList.map((g, index) => (
-        <GiftBubble key={g.bubbleId} gift={g} index={index} />
+      {giftList.map((g) => (
+        <GiftBubble key={g.id} gift={g} />
       ))}
     </View>
   );
@@ -69,7 +51,7 @@ export default function LiveGiftEffectSide({ gift }) {
 // ======================================================
 // BUBBLE ITEM
 // ======================================================
-function GiftBubble({ gift, index }) {
+function GiftBubble({ gift }) {
   const slideX = useRef(new Animated.Value(-240)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.7)).current;
