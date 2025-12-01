@@ -322,7 +322,13 @@ export default function LiveChatList({ messages, systemHeight = 170, forceUpdate
 
   return (
     <View
-      style={[styles.container, { paddingTop: systemHeight, paddingBottom: keyboardHeight + 20 }]}
+      style={[
+        styles.container,
+        { 
+          paddingTop: systemHeight,
+          bottom: 120 + keyboardHeight, // Chat list turun (semakin besar bottom saat keyboard naik)
+        }
+      ]}
       pointerEvents="box-none"
     >
       <FlatList
@@ -347,7 +353,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 10,
     right: 10,
-    bottom: 120,
     maxHeight: height * 0.55,
     flex: 1,
     width: "100%",
