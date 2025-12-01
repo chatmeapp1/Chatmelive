@@ -1,5 +1,5 @@
 import express from "express";
-import db from "../db.js";
+import { pool } from "../db.js";
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ const router = express.Router();
  */
 router.get("/top-level-users", async (req, res) => {
   try {
-    const result = await db.query(`
+    const result = await pool.query(`
       SELECT 
         u.id,
         u.name,
@@ -47,7 +47,7 @@ router.get("/top-level-users", async (req, res) => {
  */
 router.get("/top-host-users", async (req, res) => {
   try {
-    const result = await db.query(`
+    const result = await pool.query(`
       SELECT 
         u.id,
         u.name,
