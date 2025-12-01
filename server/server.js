@@ -6,6 +6,7 @@ import { Server } from "socket.io";
 import { initDatabase } from "./db.js";
 import authRoutes from "./routes/auth.js";
 import incomeRoutes from "./routes/income.js";
+import usersRoutes from "./routes/users.js";
 import { saveLiveMessage, getLiveMessages, clearLiveMessages } from "./redis.js";
 
 dotenv.config();
@@ -43,6 +44,7 @@ app.get("/", (req, res) => {
 // ====================================================
 app.use("/api", authRoutes);
 app.use("/api/income", incomeRoutes);
+app.use("/api/users", usersRoutes);
 
 // ====================================================
 // ✅ 404 Handler
