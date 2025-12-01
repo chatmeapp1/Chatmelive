@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import HomeScreen from "../screen/HomeScreen";
 import PartyScreen from "../screen/party/PartyScreen";
 import ChatNavigator from "../navigation/ChatNavigator";
-import ProfileNavigator from "../navigation/ProfileNavigator";
+import ProfileScreen from "../screen/profile/ProfileScreen";
 import colors from "../utils/colors";
 
 const { width } = Dimensions.get("window");
@@ -46,7 +46,7 @@ export default function MainTabsNavigator() {
       case "chat":
         return <ChatNavigator />;
       case "profile":
-        return <ProfileNavigator />;
+        return <ProfileScreen />;
       default:
         return (
           <View style={styles.centered}>

@@ -191,7 +191,7 @@ export default function ProfileScreen() {
               style={styles.statItem}
               onPress={() => {
                 console.log("📱 Navigating to FollowListScreen - following");
-                navigation.navigate("FollowListScreen", { tab: "following" });
+                navigation.navigate("ProfileNavigator", { screen: "FollowListScreen", params: { tab: "following" } });
               }}
             >
               <Text style={styles.statValue}>{followCounts.following}</Text>
@@ -202,7 +202,7 @@ export default function ProfileScreen() {
               style={styles.statItem}
               onPress={() => {
                 console.log("📱 Navigating to FollowListScreen - followers");
-                navigation.navigate("FollowListScreen", { tab: "followers" });
+                navigation.navigate("ProfileNavigator", { screen: "FollowListScreen", params: { tab: "followers" } });
               }}
             >
               <Text style={styles.statValue}>{followCounts.followers}</Text>
