@@ -26,12 +26,8 @@ export default function SettingsScreen({ navigation }) {
           onPress: async () => {
             try {
               await authAPI.logout();
-              navigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [{ name: "Auth" }],
-                })
-              );
+              // AppNavigator will automatically detect logout and switch to Auth screen
+              // No need for manual navigation.reset() - it causes navigation errors
             } catch (error) {
               console.error("❌ Logout error:", error);
               Alert.alert("Error", "Failed to logout");
