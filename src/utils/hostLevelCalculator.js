@@ -8,6 +8,9 @@
 
 import { getLevelBadge, getLevelTierInfo } from "./levelBadgeMap.js";
 
+// Export badge functions for use in components
+export { getLevelBadge, getLevelTierInfo };
+
 // Diamonds needed per level for host
 export const DIAMONDS_PER_LEVEL = 500; // 500 diamonds = 1 level for host
 

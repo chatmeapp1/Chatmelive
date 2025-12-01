@@ -1,12 +1,11 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, Dimensions } from "react-native";
-import { getLevelBadge, getLevelTierInfo } from "../../../utils/levelCalculator";
+import { getLevelBadge } from "../../../utils/levelCalculator";
 
 const { width } = Dimensions.get("window");
 
 export default function LevelBadgeDisplay({ level = 0, totalXp = 0 }) {
   const badge = getLevelBadge(level);
-  const tierInfo = getLevelTierInfo(level);
   
   // Calculate progress to next tier
   let progressPercent = 0;

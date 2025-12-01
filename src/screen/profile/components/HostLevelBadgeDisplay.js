@@ -1,12 +1,11 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, Dimensions } from "react-native";
-import { getHostLevelBadge, getHostLevelTier } from "../../../utils/hostLevelCalculator";
+import { getLevelBadge } from "../../../utils/hostLevelCalculator";
 
 const { width } = Dimensions.get("window");
 
 export default function HostLevelBadgeDisplay({ hostLevel = 0, totalHostIncome = 0 }) {
-  const badge = getHostLevelBadge(hostLevel);
-  const tierInfo = getHostLevelTier(hostLevel);
+  const badge = getLevelBadge(hostLevel);
   
   // Calculate progress to next tier
   let progressPercent = 0;

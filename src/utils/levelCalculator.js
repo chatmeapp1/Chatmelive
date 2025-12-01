@@ -8,6 +8,9 @@
 
 import { getLevelBadge, getLevelTierInfo } from "./levelBadgeMap.js";
 
+// Export badge functions for use in components
+export { getLevelBadge, getLevelTierInfo };
+
 export const XP_PER_LEVEL = 1000; // 1000 XP per level
 export const COINS_PER_XP = 1;   // 1 coin = 1 XP
 
