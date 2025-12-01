@@ -1,6 +1,6 @@
 // src/live/components/LiveChatList.js
 
-import React, { useRef, useEffect, memo } from "react";
+import React, { useRef, useEffect, memo, useState } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   Image,
   Animated,
   Dimensions,
+  Keyboard,
+  Platform,
 } from "react-native";
 import VipChatVip from "./VipChatVip";
 import { calculateVipLevel } from "../../../utils/vipCalculator";
@@ -252,6 +254,35 @@ const ChatRow = memo(({ item }) => {
 export default function LiveChatList({ messages, systemHeight = 170, forceUpdateKey = 0 }) {
   const listRef = useRef(null);
   const processedMessageIds = useRef(new Set());
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  // ✅ Keyboard listeners - adjust chat list when keyboard appears
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+        // Auto scroll ke bottom saat keyboard muncul
+        setTimeout(() => {
+          if (listRef.current) {
+            listRef.current?.scrollToEnd({ animated: true });
+          }
+        }, 100);
+      }
+    );
+
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
 
   // Filter duplicate messages
   const uniqueMessages = messages.filter((msg) => {
@@ -291,7 +322,7 @@ export default function LiveChatList({ messages, systemHeight = 170, forceUpdate
 
   return (
     <View
-      style={[styles.container, { paddingTop: systemHeight }]}
+      style={[styles.container, { paddingTop: systemHeight, paddingBottom: keyboardHeight + 20 }]}
       pointerEvents="box-none"
     >
       <FlatList
