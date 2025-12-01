@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../../utils/api";
-import { LiveContext } from "../../context/LiveContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function PenggemarScreen({ navigation }) {
   const [tab, setTab] = useState("Daily");
@@ -21,14 +21,34 @@ export default function PenggemarScreen({ navigation }) {
   const [topContributors, setTopContributors] = useState([]);
   const [userRank, setUserRank] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { user } = useContext(LiveContext);
+  const [userId, setUserId] = useState(null);
+  const [userAvatar, setUserAvatar] = useState(null);
 
   useEffect(() => {
-    loadPenggemarData();
-  }, [tab, user?.id]);
+    getUserData();
+  }, []);
+
+  useEffect(() => {
+    if (userId) {
+      loadPenggemarData();
+    }
+  }, [tab, userId]);
+
+  const getUserData = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem("user");
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        setUserId(userData.id);
+        setUserAvatar(userData.avatar_url);
+      }
+    } catch (error) {
+      console.error("❌ Error loading user data:", error);
+    }
+  };
 
   const loadPenggemarData = async () => {
-    if (!user?.id) return;
+    if (!userId) return;
     try {
       setLoading(true);
       const tabLower = tab.toLowerCase();
@@ -36,7 +56,7 @@ export default function PenggemarScreen({ navigation }) {
 
       const [contributorsRes, rankRes] = await Promise.all([
         api.get(`/penggemar/${endpoint}`),
-        api.get(`/penggemar/my-rank/${user.id}`)
+        api.get(`/penggemar/my-rank/${userId}`)
       ]);
 
       if (contributorsRes.data.success) {
@@ -125,7 +145,7 @@ export default function PenggemarScreen({ navigation }) {
       {/* Footer */}
       <View style={styles.footer}>
         <Image
-          source={user?.avatar_url ? { uri: user.avatar_url } : require("../../../assets/images/avatar_default.png")}
+          source={userAvatar ? { uri: userAvatar } : require("../../../assets/images/avatar_default.png")}
           style={styles.avatar}
         />
         <View style={styles.footerText}>
