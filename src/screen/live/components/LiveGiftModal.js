@@ -132,10 +132,8 @@ export default function LiveGiftModal({
       const data = { ...selectedGift, count: giftCount };
       onSend(data);
 
-      // Only trigger big gift effect for luxury category
-      if (selectedGift.category === "luxury" && selectedGift.lottie && onBigGift) {
-        onBigGift({ ...selectedGift, count: giftCount, duration: 4000 });
-      }
+      // Don't show big gift effect - luxury gifts will display normally through gift effect system
+      // This prevents lottie from taking up full screen
 
       closeComboAnimation();
       onClose();
