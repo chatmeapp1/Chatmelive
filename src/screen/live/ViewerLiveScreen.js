@@ -318,17 +318,6 @@ export default function ViewerLiveScreen({ route }) {
       // Store gift data + combo count for ComboButton
       setSelectedGiftData({ ...giftData, count });
 
-      // Add gift message to chatlist immediately
-      const giftMessage = {
-        id: Date.now(),
-        user: viewer.name,
-        level: viewer.level || 1,
-        vip: viewer.vip || 0,
-        text: `mengirim ${giftData.name} x${count}`,
-        isGift: true,
-      };
-      setMessages((prev) => [...prev, giftMessage]);
-
       // Broadcast gift via Socket.IO with server-calculated host income
       socketService.sendGift(
         channelName,
