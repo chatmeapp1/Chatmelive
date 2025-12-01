@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,10 +9,12 @@ import {
   ImageBackground,
   Animated,
   Easing,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import LottieView from "lottie-react-native";
+import api from "../../utils/api";
 
 /* ================================ */
 /* CONFIG SIZE                      */
@@ -54,22 +56,22 @@ const getLevelGradient = (score) => {
 };
 
 /* ================================ */
-/* DUMMY DATA                       */
+/* DEFAULT/DUMMY DATA              */
 /* ================================ */
-const topLevelUsers = [
-  { id: 1, name: "mo", avatar: require("../../../assets/images/avatar1.png"), score: 10 },
-  { id: 2, name: "RP", avatar: require("../../../assets/images/avatar2.png"), score: 57 },
-  { id: 3, name: "oRLin", avatar: require("../../../assets/images/avatar3.png"), score: 35 },
-  { id: 4, name: "SU", avatar: require("../../../assets/images/avatar4.png"), score: 20 },
-  { id: 5, name: "Bang_wo", avatar: require("../../../assets/images/avatar5.png"), score: 15 },
+const defaultTopLevelUsers = [
+  { id: 1, name: "mo", avatar_url: null, score: 10 },
+  { id: 2, name: "RP", avatar_url: null, score: 57 },
+  { id: 3, name: "oRLin", avatar_url: null, score: 35 },
+  { id: 4, name: "SU", avatar_url: null, score: 20 },
+  { id: 5, name: "Bang_wo", avatar_url: null, score: 15 },
 ];
 
-const topHostUsers = [
-  { id: 1, name: "TIFF!", avatar: require("../../../assets/images/avatar6.png"), score: 71 },
-  { id: 2, name: "oRLin", avatar: require("../../../assets/images/avatar3.png"), score: 40 },
-  { id: 3, name: "celldc", avatar: require("../../../assets/images/avatar7.png"), score: 14 },
-  { id: 4, name: "SU", avatar: require("../../../assets/images/avatar4.png"), score: 6 },
-  { id: 5, name: "mo", avatar: require("../../../assets/images/avatar1.png"), score: 5 },
+const defaultTopHostUsers = [
+  { id: 1, name: "TIFF!", avatar_url: null, score: 71 },
+  { id: 2, name: "oRLin", avatar_url: null, score: 40 },
+  { id: 3, name: "celldc", avatar_url: null, score: 14 },
+  { id: 4, name: "SU", avatar_url: null, score: 6 },
+  { id: 5, name: "mo", avatar_url: null, score: 5 },
 ];
 
 /* ================================ */
@@ -107,7 +109,10 @@ const PodiumUser = ({ user }) => {
 
       {/* Avatar */}
       <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-        <Image source={user.avatar} style={styles.avatar} />
+        <Image 
+          source={user.avatar_url ? { uri: user.avatar_url } : require("../../../assets/images/avatar_default.png")} 
+          style={styles.avatar} 
+        />
       </Animated.View>
 
       {/* Badge */}
@@ -137,6 +142,37 @@ const PodiumUser = ({ user }) => {
 /* MAIN SCREEN                      */
 /* ================================ */
 export default function LevelScreen() {
+  const [topLevelUsers, setTopLevelUsers] = useState(defaultTopLevelUsers);
+  const [topHostUsers, setTopHostUsers] = useState(defaultTopHostUsers);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadTopUsers();
+  }, []);
+
+  const loadTopUsers = async () => {
+    try {
+      setLoading(true);
+      const [levelRes, hostRes] = await Promise.all([
+        api.get("/rankings/top-level-users"),
+        api.get("/rankings/top-host-users"),
+      ]);
+
+      if (levelRes.data.success) {
+        setTopLevelUsers(levelRes.data.data || defaultTopLevelUsers);
+      }
+      if (hostRes.data.success) {
+        setTopHostUsers(hostRes.data.data || defaultTopHostUsers);
+      }
+    } catch (error) {
+      console.error("❌ Error loading top users:", error);
+      setTopLevelUsers(defaultTopLevelUsers);
+      setTopHostUsers(defaultTopHostUsers);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
@@ -187,34 +223,46 @@ export default function LevelScreen() {
         </TouchableOpacity>
       </View>
 
-      <ImageBackground
-        source={require("../../../assets/background/podium-bg.png")}
-        style={styles.podiumBackground}
-        resizeMode="cover"
-      >
-        <View style={styles.podiumRow}>
-          {topLevelUsers.map((u) => (
-            <PodiumUser key={u.id} user={u} />
-          ))}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#00C67A" />
         </View>
-      </ImageBackground>
+      ) : (
+        <ImageBackground
+          source={require("../../../assets/background/podium-bg.png")}
+          style={styles.podiumBackground}
+          resizeMode="cover"
+        >
+          <View style={styles.podiumRow}>
+            {topLevelUsers.map((u) => (
+              <PodiumUser key={u.id} user={u} />
+            ))}
+          </View>
+        </ImageBackground>
+      )}
 
       {/* Host Top5 */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>User Host Top5</Text>
       </View>
 
-      <ImageBackground
-        source={require("../../../assets/background/podium-bg.png")}
-        style={styles.podiumBackground}
-        resizeMode="cover"
-      >
-        <View style={styles.podiumRow}>
-          {topHostUsers.map((u) => (
-            <PodiumUser key={u.id} user={u} />
-          ))}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#00C67A" />
         </View>
-      </ImageBackground>
+      ) : (
+        <ImageBackground
+          source={require("../../../assets/background/podium-bg.png")}
+          style={styles.podiumBackground}
+          resizeMode="cover"
+        >
+          <View style={styles.podiumRow}>
+            {topHostUsers.map((u) => (
+              <PodiumUser key={u.id} user={u} />
+            ))}
+          </View>
+        </ImageBackground>
+      )}
 
     </ScrollView>
   );
@@ -295,6 +343,14 @@ const styles = StyleSheet.create({
     height: 230,
     marginTop: 10,
     justifyContent: "center",
+  },
+  loadingContainer: {
+    height: 230,
+    marginTop: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 198, 122, 0.1)",
+    borderRadius: 12,
   },
 
   podiumRow: {
