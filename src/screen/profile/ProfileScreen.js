@@ -17,6 +17,7 @@ import ProfileHeader from "./components/ProfileHeader";
 import ProfileBalance from "./components/ProfileBalance";
 import ProfileFunctions from "./components/ProfileFunctions";
 import LevelBadgeDisplay from "./components/LevelBadgeDisplay";
+import HostLevelBadgeDisplay from "./components/HostLevelBadgeDisplay";
 import api, { authAPI } from "../../utils/api";
 
 export default function ProfileScreen() {
@@ -32,6 +33,8 @@ export default function ProfileScreen() {
   });
   const [userLevel, setUserLevel] = useState(0);
   const [totalXp, setTotalXp] = useState(0);
+  const [hostLevel, setHostLevel] = useState(0);
+  const [hostIncome, setHostIncome] = useState(0);
 
   useEffect(() => {
     loadUserData();
@@ -79,6 +82,8 @@ export default function ProfileScreen() {
         setBalance(user.balance || 0);
         setUserLevel(user.userLevel || 0);
         setTotalXp(user.totalXp || 0);
+        setHostLevel(user.hostLevel || 0);
+        setHostIncome(user.hostIncome || 0);
       } else {
         console.error("❌ Invalid response structure");
         setUserData(null);
@@ -110,6 +115,8 @@ export default function ProfileScreen() {
           setBalance(user.balance || 0);
           setUserLevel(user.userLevel || 0);
           setTotalXp(user.totalXp || 0);
+          setHostLevel(user.hostLevel || 0);
+          setHostIncome(user.hostIncome || 0);
         } else {
           console.log("❌ No cached data available");
           setUserData(null);
@@ -194,6 +201,11 @@ export default function ProfileScreen() {
         <View style={styles.content}>
           {/* LEVEL BADGE DISPLAY */}
           <LevelBadgeDisplay level={userLevel} totalXp={totalXp} />
+
+          {/* HOST LEVEL BADGE DISPLAY */}
+          {hostLevel > 0 && (
+            <HostLevelBadgeDisplay hostLevel={hostLevel} totalHostIncome={hostIncome} />
+          )}
 
           {/* STATS */}
           <View style={styles.statsRow}>
