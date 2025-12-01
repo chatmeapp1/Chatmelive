@@ -326,7 +326,7 @@ export default function LiveChatList({ messages, systemHeight = 170, forceUpdate
         styles.container,
         { 
           paddingTop: systemHeight,
-          bottom: 120 + keyboardHeight, // Chat list turun (semakin besar bottom saat keyboard naik)
+          maxHeight: Math.max(height * 0.3, height * 0.55 - keyboardHeight - 80), // Berkurang saat keyboard naik, min 30% screen
         }
       ]}
       pointerEvents="box-none"
@@ -353,6 +353,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 10,
     right: 10,
+    bottom: 120, // Tetap fixed di atas input, tidak berubah saat keyboard naik
     maxHeight: height * 0.55,
     flex: 1,
     width: "100%",
