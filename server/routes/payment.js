@@ -276,17 +276,17 @@ router.post("/webhook", async (req, res) => {
       [paymentStatus, orderId]
     );
 
-    // If payment successful, add coins to user's topup_balance (NOT host income) + track XP for level system
+    // If payment successful, add coins to user's topup_balance (NOT host income)
     if (paymentStatus === "success" && transaction.status !== "success") {
       const totalCoins = transaction.coins_amount;
 
-      // Update topup_balance AND total_xp (1 coin = 1 XP)
-      await pool.query(
-        "UPDATE users SET topup_balance = topup_balance + $1, total_xp = COALESCE(total_xp, 0) + $1 WHERE id = $2",
-        [totalCoins, transaction.user_id]
-      );
+      // Update topup_balance only (total_xp field will be added in future)
+      await pool.query("UPDATE users SET topup_balance = topup_balance + $1 WHERE id = $2", [
+        totalCoins,
+        transaction.user_id,
+      ]);
 
-      console.log(`✅ Added ${totalCoins} coins to user ${transaction.user_id} topup balance + ${totalCoins} XP for level system`);
+      console.log(`✅ Added ${totalCoins} coins to user ${transaction.user_id} topup balance`);
     }
 
     res.json({ success: true, message: "Notification processed" });
