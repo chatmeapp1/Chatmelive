@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -7,13 +7,50 @@ import {
   Switch,
   Image,
   ScrollView,
+  ActivityIndicator,
+  FlatList,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import api from "../../utils/api";
+import { LiveContext } from "../../context/LiveContext";
 
 export default function PenggemarScreen({ navigation }) {
   const [tab, setTab] = useState("Daily");
   const [hideRank, setHideRank] = useState(false);
+  const [topContributors, setTopContributors] = useState([]);
+  const [userRank, setUserRank] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const { user } = useContext(LiveContext);
+
+  useEffect(() => {
+    loadPenggemarData();
+  }, [tab, user?.id]);
+
+  const loadPenggemarData = async () => {
+    if (!user?.id) return;
+    try {
+      setLoading(true);
+      const tabLower = tab.toLowerCase();
+      const endpoint = tab === "Totally" ? "total" : tabLower;
+
+      const [contributorsRes, rankRes] = await Promise.all([
+        api.get(`/penggemar/${endpoint}`),
+        api.get(`/penggemar/my-rank/${user.id}`)
+      ]);
+
+      if (contributorsRes.data.success) {
+        setTopContributors(contributorsRes.data.data || []);
+      }
+      if (rankRes.data.success) {
+        setUserRank(rankRes.data.data[endpoint] || null);
+      }
+    } catch (error) {
+      console.error("❌ Error loading penggemar data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -59,29 +96,48 @@ export default function PenggemarScreen({ navigation }) {
       </LinearGradient>
 
       {/* Content Area */}
-      <ScrollView
-        style={styles.scrollArea}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.emptyBox}>
-          <Text style={styles.emptyText}>
-            Belum ada data {tab.toLowerCase()} ranking penggemar
-          </Text>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#48C47B" />
         </View>
-      </ScrollView>
+      ) : topContributors.length === 0 ? (
+        <ScrollView
+          style={styles.scrollArea}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.emptyBox}>
+            <Text style={styles.emptyText}>
+              Belum ada data {tab.toLowerCase()} ranking penggemar
+            </Text>
+          </View>
+        </ScrollView>
+      ) : (
+        <FlatList
+          data={topContributors}
+          style={styles.scrollArea}
+          showsVerticalScrollIndicator={false}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item, index }) => <ContributorItem item={item} index={index} />}
+          scrollEnabled={false}
+        />
+      )}
 
       {/* Footer */}
       <View style={styles.footer}>
         <Image
-          source={require("../../../assets/images/avatar_default.png")}
+          source={user?.avatar_url ? { uri: user.avatar_url } : require("../../../assets/images/avatar_default.png")}
           style={styles.avatar}
         />
         <View style={styles.footerText}>
           <Text style={styles.ratingTitle}>
             Rating display:{" "}
-            <Text style={styles.notListed}>Not on the list</Text>
+            <Text style={styles.notListed}>
+              {userRank?.rank ? `Rank #${userRank.rank}` : "Not on the list"}
+            </Text>
           </Text>
-          <Text style={styles.contribute}>contribute : 0</Text>
+          <Text style={styles.contribute}>
+            contribute: {userRank?.contribution || 0}
+          </Text>
         </View>
 
         <View style={styles.switchRow}>
@@ -97,6 +153,43 @@ export default function PenggemarScreen({ navigation }) {
     </View>
   );
 }
+
+/* ================================ */
+/* CONTRIBUTOR ITEM COMPONENT       */
+/* ================================ */
+const ContributorItem = ({ item, index }) => {
+  const getMedalColor = () => {
+    if (index === 0) return "#FFD700"; // Gold
+    if (index === 1) return "#C0C0C0"; // Silver
+    if (index === 2) return "#CD7F32"; // Bronze
+    return "#48C47B";
+  };
+
+  return (
+    <View style={styles.contributorItem}>
+      <View style={[styles.rankBadge, { backgroundColor: getMedalColor() }]}>
+        <Text style={styles.rankText}>{item.rank}</Text>
+      </View>
+
+      <Image
+        source={item.avatar_url ? { uri: item.avatar_url } : require("../../../assets/images/avatar_default.png")}
+        style={styles.contributorAvatar}
+      />
+
+      <View style={styles.contributorInfo}>
+        <Text style={styles.contributorName} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <Text style={styles.contributorLevel}>Lv {item.level}</Text>
+      </View>
+
+      <View style={styles.contributorStats}>
+        <Text style={styles.contribution}>{item.contribution}</Text>
+        <Text style={styles.contributionLabel}>coins</Text>
+      </View>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -163,6 +256,12 @@ const styles = StyleSheet.create({
   scrollArea: {
     flex: 1,
     paddingTop: 10,
+    paddingHorizontal: 15,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyBox: {
     alignItems: "center",
@@ -172,6 +271,62 @@ const styles = StyleSheet.create({
   emptyText: {
     color: "#888",
     fontSize: 14,
+  },
+
+  // CONTRIBUTOR ITEM
+  contributorItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 10,
+    elevation: 2,
+  },
+  rankBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  rankText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  contributorAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  contributorInfo: {
+    flex: 1,
+  },
+  contributorName: {
+    color: "#333",
+    fontWeight: "600",
+    fontSize: 13,
+  },
+  contributorLevel: {
+    color: "#888",
+    fontSize: 11,
+    marginTop: 2,
+  },
+  contributorStats: {
+    alignItems: "flex-end",
+  },
+  contribution: {
+    color: "#48C47B",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  contributionLabel: {
+    color: "#888",
+    fontSize: 10,
   },
 
   // FOOTER

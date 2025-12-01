@@ -30,6 +30,7 @@ import superAdminRoutes from "./routes/superAdmin.js";
 import paymentRoutes from "./routes/payment.js";
 import adminAuthRoutes from "./routes/admin-auth.js";
 import rankingsRoutes from "./routes/rankings.js";
+import penggemarRoutes from "./routes/penggemar.js";
 import { pool } from "./db.js";
 
 dotenv.config();
@@ -123,6 +124,7 @@ app.use("/api/super-admin", superAdminRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin-auth", adminAuthRoutes);
 app.use("/api/rankings", rankingsRoutes);
+app.use("/api/penggemar", penggemarRoutes);
 
 // ====================================================
 // ✅ 404 Handler
