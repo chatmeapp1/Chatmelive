@@ -293,21 +293,8 @@ export default function ViewerLiveScreen({ route }) {
           return;
         }
       } else {
-        // For luxury gifts - just deduct coins without JP
-        await fetch(`${API_URL}/api/gifts/send`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            receiverId: host?.id || 0,
-            giftPrice: giftData.price,
-            count: count,
-            roomId: channelName,
-          }),
-        });
-
+        // For luxury gifts - no backend call, handle locally
+        // Just deduct coins without JP system
         result = {
           success: true,
           saldoAkhir: coins - totalPrice,
