@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
 
   badgeRow: {
     flexDirection: "row",
-    marginTop: 12,
+    marginTop: -28,
     alignItems: "flex-end",
     justifyContent: "center",
     gap: 16,
@@ -242,13 +242,13 @@ const styles = StyleSheet.create({
   },
 
   levelBadgeIcon: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     resizeMode: "contain",
   },
 
   levelBadgeNumber: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "700",
     color: "#fff",
     position: "absolute",
