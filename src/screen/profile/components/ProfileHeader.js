@@ -102,11 +102,11 @@ export default function ProfileHeader({ userData }) {
         )}
       </View>
 
-      {/* ✅ Row badge */}
+      {/* ✅ Row badge - Selalu tampilkan User Level dan Host Level */}
       <View style={styles.badgeRow}>
 
         {/* USER LEVEL - dengan icon mapping */}
-        {userLevel > 0 && (
+        <View style={styles.badgeWithLabel}>
           <View style={styles.badgeContainer}>
             <Image
               source={getLevelBadge(userLevel).icon}
@@ -114,10 +114,11 @@ export default function ProfileHeader({ userData }) {
             />
             <Text style={styles.levelBadgeNumber}>{userLevel}</Text>
           </View>
-        )}
+          <Text style={styles.badgeLabel}>User Lvl</Text>
+        </View>
 
         {/* HOST LEVEL - dengan icon mapping */}
-        {hostLevel > 0 && (
+        <View style={styles.badgeWithLabel}>
           <View style={styles.badgeContainer}>
             <Image
               source={getLevelBadge(hostLevel).icon}
@@ -125,7 +126,8 @@ export default function ProfileHeader({ userData }) {
             />
             <Text style={styles.levelBadgeNumber}>{hostLevel}</Text>
           </View>
-        )}
+          <Text style={styles.badgeLabel}>Host Lvl</Text>
+        </View>
 
         {/* ✅ VIP BADGE */}
         {(userData?.vipLevel || 0) > 0 && (
@@ -219,29 +221,34 @@ const styles = StyleSheet.create({
 
   badgeRow: {
     flexDirection: "row",
-    marginTop: 8,
-    alignItems: "center",
+    marginTop: 12,
+    alignItems: "flex-end",
     justifyContent: "center",
-    gap: 8,
+    gap: 16,
+  },
+
+  badgeWithLabel: {
+    alignItems: "center",
+    gap: 4,
   },
 
   /* ✅ Badge container untuk level icon + number */
   badgeContainer: {
-    width: 32,
-    height: 32,
+    width: 40,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
   },
 
   levelBadgeIcon: {
-    width: 32,
-    height: 32,
+    width: 40,
+    height: 40,
     resizeMode: "contain",
   },
 
   levelBadgeNumber: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "700",
     color: "#fff",
     position: "absolute",
@@ -249,9 +256,15 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 
+  badgeLabel: {
+    fontSize: 10,
+    color: "#AAA",
+    fontWeight: "600",
+  },
+
   vipBadge: {
-    width: 28,
-    height: 28,
+    width: 36,
+    height: 36,
     resizeMode: "contain",
   },
 
