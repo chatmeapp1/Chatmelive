@@ -227,15 +227,16 @@ const styles = StyleSheet.create({
 
   /* ✅ Badge container untuk level icon + number */
   badgeContainer: {
-    flexDirection: "row",
+    width: 32,
+    height: 32,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
   },
 
   levelBadgeIcon: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     resizeMode: "contain",
   },
 
@@ -245,6 +246,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     position: "absolute",
     textAlign: "center",
+    zIndex: 10,
   },
 
   vipBadge: {

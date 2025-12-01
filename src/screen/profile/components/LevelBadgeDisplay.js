@@ -5,13 +5,16 @@ import { getLevelBadge } from "../../../utils/levelCalculator";
 const { width } = Dimensions.get("window");
 
 export default function LevelBadgeDisplay({ level = 0, totalXp = 0 }) {
+  // Don't display badge if level is 0
+  if (level === 0) {
+    return null;
+  }
+
   const badge = getLevelBadge(level);
   
   // Calculate progress to next tier
   let progressPercent = 0;
-  if (level === 0) {
-    progressPercent = 0;
-  } else if (level >= 100) {
+  if (level >= 100) {
     progressPercent = 100;
   } else {
     // Simple progress calculation
