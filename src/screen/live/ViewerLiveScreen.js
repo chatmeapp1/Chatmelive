@@ -440,6 +440,7 @@ export default function ViewerLiveScreen({ route }) {
             viewers={viewers}
             totalViewers={viewerCount}
             onPressViewers={() => setViewerListVisible(true)}
+            isHost={false}
             onClose={() => {
               // Disconnect from room before going back
               socketService.leaveLiveRoom(channelName, viewer.id, viewer.name);
@@ -453,7 +454,9 @@ export default function ViewerLiveScreen({ route }) {
             <LiveSystemMessage />
           </View>
 
-          <LiveChatList messages={messages} systemHeight={180} forceUpdateKey={activeCombo ? activeCombo.count : 0} />
+          <View style={styles.chatListWrapper} pointerEvents="box-none">
+            <LiveChatList messages={messages} systemHeight={180} forceUpdateKey={activeCombo ? activeCombo.count : 0} />
+          </View>
 
           {/* BOTTOM ACTION BAR */}
           {!showInput && (
@@ -547,6 +550,15 @@ const styles = StyleSheet.create({
     top: 150,
     left: 0,
     right: 0,
+    zIndex: 10,
+  },
+  chatListWrapper: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 5,
   },
   bottomMenuContainer: {
     position: "absolute",

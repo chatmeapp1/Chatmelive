@@ -18,12 +18,13 @@ export default function LiveHeader({
   totalViewers,
   onPressViewers,
   onClose,
+  isHost = true,
 }) {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
 
   // hanya tampilkan 4 viewer terakhir
-  const lastViewers = viewers.slice(-4);
+  const lastViewers = viewers && viewers.length > 0 ? viewers.slice(-4) : [];
 
   const handleAvatarPress = (userId) => {
     setSelectedUserId(userId);
@@ -57,23 +58,26 @@ export default function LiveHeader({
         {/* ✅ RIGHT SIDE GROUP */}
         <View style={styles.rightGroup} pointerEvents="box-none">
 
-          {/* ✅ VIEWER LIST (4 TERAKHIR) */}
-          <View style={styles.viewerStrip} pointerEvents="box-none">
-            {lastViewers.map((v, i) => (
-              <TouchableOpacity
-                key={v.userId || v.id}
-                onPress={() => handleAvatarPress(v.userId || v.id)}
-              >
-                <Image
-                  source={{ uri: v.avatar || v.avatar_url }}
-                  style={[
-                    styles.viewerAvatar,
-                    i !== 0 && { marginLeft: -8 },
-                  ]}
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
+          {/* ✅ VIEWER LIST (4 TERAKHIR) - ALWAYS VISIBLE */}
+          {lastViewers.length > 0 && (
+            <View style={styles.viewerStrip} pointerEvents="box-none">
+              {lastViewers.map((v, i) => (
+                <TouchableOpacity
+                  key={v.userId || v.id}
+                  onPress={() => handleAvatarPress(v.userId || v.id)}
+                  style={styles.viewerAvatarTouchable}
+                >
+                  <Image
+                    source={{ uri: v.avatar || v.avatar_url }}
+                    style={[
+                      styles.viewerAvatar,
+                      i !== 0 && { marginLeft: -8 },
+                    ]}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {/* ✅ TOTAL VIEWER BUBBLE */}
           <View style={styles.viewerCount} pointerEvents="none">
