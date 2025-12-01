@@ -203,7 +203,7 @@ router.get("/auth/profile", async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
 
     const result = await client.query(
-      "SELECT id, name, phone, balance, level, vip_level, avatar_url, gender, age, signature FROM users WHERE id = $1",
+      "SELECT id, name, phone, balance, level, vip_level, avatar_url, gender, age, signature, total_xp FROM users WHERE id = $1",
       [decoded.id]
     );
 
@@ -212,6 +212,10 @@ router.get("/auth/profile", async (req, res) => {
     }
 
     const user = result.rows[0];
+    
+    // Calculate current level from total_xp (1000 XP = 1 level)
+    const userLevel = user.total_xp ? Math.floor(user.total_xp / 1000) : 0;
+    
     res.json({ 
       success: true, 
       data: {
@@ -224,7 +228,9 @@ router.get("/auth/profile", async (req, res) => {
         avatar_url: user.avatar_url || null,
         gender: user.gender || null,
         age: user.age || null,
-        signature: user.signature || null
+        signature: user.signature || null,
+        totalXp: user.total_xp || 0,
+        userLevel: userLevel
       }
     });
   } catch (err) {

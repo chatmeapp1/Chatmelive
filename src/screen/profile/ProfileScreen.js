@@ -16,6 +16,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import ProfileHeader from "./components/ProfileHeader";
 import ProfileBalance from "./components/ProfileBalance";
 import ProfileFunctions from "./components/ProfileFunctions";
+import LevelBadgeDisplay from "./components/LevelBadgeDisplay";
 import api, { authAPI } from "../../utils/api";
 
 export default function ProfileScreen() {
@@ -29,6 +30,8 @@ export default function ProfileScreen() {
     following: 0,
     followers: 0,
   });
+  const [userLevel, setUserLevel] = useState(0);
+  const [totalXp, setTotalXp] = useState(0);
 
   useEffect(() => {
     loadUserData();
@@ -74,6 +77,8 @@ export default function ProfileScreen() {
           vipLevel: user.vipLevel || 0,
         });
         setBalance(user.balance || 0);
+        setUserLevel(user.userLevel || 0);
+        setTotalXp(user.totalXp || 0);
       } else {
         console.error("❌ Invalid response structure");
         setUserData(null);
@@ -103,6 +108,8 @@ export default function ProfileScreen() {
             vipLevel: user.vipLevel || 0,
           });
           setBalance(user.balance || 0);
+          setUserLevel(user.userLevel || 0);
+          setTotalXp(user.totalXp || 0);
         } else {
           console.log("❌ No cached data available");
           setUserData(null);
@@ -185,6 +192,9 @@ export default function ProfileScreen() {
         }}
       >
         <View style={styles.content}>
+          {/* LEVEL BADGE DISPLAY */}
+          <LevelBadgeDisplay level={userLevel} totalXp={totalXp} />
+
           {/* STATS */}
           <View style={styles.statsRow}>
             <TouchableOpacity 
