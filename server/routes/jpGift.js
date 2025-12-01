@@ -8,6 +8,7 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "chatme_secret_key";
 
 // POST /api/jp-gift/send (BALANCED v2 dengan jpProbabilityEngine)
+// ONLY FOR S-LUCKY & LUCKY GIFTS - NOT FOR LUXURY
 router.post("/send", async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) {
@@ -21,12 +22,20 @@ router.post("/send", async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     const senderId = decoded.id;
 
-    const { receiverId, giftPrice, combo, roomId } = req.body;
+    const { receiverId, giftPrice, combo, roomId, category } = req.body;
 
     if (!receiverId || !giftPrice || !combo || !roomId) {
       return res.status(400).json({
         success: false,
         message: "Data tidak lengkap (receiverId, giftPrice, combo, roomId required)",
+      });
+    }
+
+    // 🚫 REJECT LUXURY GIFTS - JP ONLY FOR S-LUCKY & LUCKY
+    if (category === "luxury") {
+      return res.status(400).json({
+        success: false,
+        message: "Luxury gifts tidak bisa masuk JP system",
       });
     }
 

@@ -263,29 +263,58 @@ export default function ViewerLiveScreen({ route }) {
       const token = await AsyncStorage.getItem("userToken");
       const { API_URL } = getEnvVars();
 
-      // CALL JP-GIFT API TO VALIDATE & PROCESS
-      const response = await fetch(`${API_URL}/api/jp-gift/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          receiverId: host?.id || 0,
-          giftPrice: giftData.price,
-          combo: count,
-          roomId: channelName,
-        }),
-      });
+      // Only luxury gifts skip JP - use JP for s-lucky & lucky only
+      const isJPGift = giftData.category === "s-lucky" || giftData.category === "lucky";
 
-      const result = await response.json();
+      // CALL JP-GIFT API ONLY FOR S-LUCKY & LUCKY
+      let result;
+      if (isJPGift) {
+        const response = await fetch(`${API_URL}/api/jp-gift/send`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            receiverId: host?.id || 0,
+            giftPrice: giftData.price,
+            combo: count,
+            roomId: channelName,
+          }),
+        });
 
-      // ❌ API FAILED - CHECK FOR ERROR
-      if (!result || !result.success) {
-        const errorMsg = result?.message || result?.error || "Unknown error";
-        console.error("❌ JP Gift Error:", errorMsg);
-        setInsufficientBalanceError(errorMsg);
-        return;
+        result = await response.json();
+
+        // ❌ API FAILED - CHECK FOR ERROR
+        if (!result || !result.success) {
+          const errorMsg = result?.message || result?.error || "Unknown error";
+          console.error("❌ JP Gift Error:", errorMsg);
+          setInsufficientBalanceError(errorMsg);
+          return;
+        }
+      } else {
+        // For luxury gifts - just deduct coins without JP
+        await fetch(`${API_URL}/api/gifts/send`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            receiverId: host?.id || 0,
+            giftPrice: giftData.price,
+            count: count,
+            roomId: channelName,
+          }),
+        });
+
+        result = {
+          success: true,
+          saldoAkhir: coins - totalPrice,
+          hostIncome: Math.floor(totalPrice * 0.5), // 50% for luxury
+          jpWin: false,
+          message: "Luxury gift sent successfully",
+        };
       }
 
       // ✅ GIFT SENT SUCCESSFULLY
