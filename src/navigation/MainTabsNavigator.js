@@ -168,7 +168,6 @@ export default function MainTabsNavigator() {
                   style={[
                     styles.tabIcon,
                     { opacity: isActive ? 1 : 0.6 },
-                    { tintColor: isActive ? colors.primary : "#999" },
                   ]}
                   resizeMode="contain"
                 />
@@ -207,8 +206,8 @@ const styles = StyleSheet.create({
     paddingTop: 5,
   },
   tabIcon: {
-    width: 32,
-    height: 32,
+    width: 40,
+    height: 40,
   },
   tabLabel: { 
     fontSize: 12, 
