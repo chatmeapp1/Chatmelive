@@ -8,10 +8,10 @@ import {
   Animated,
   Dimensions,
   Platform,
+  Image,
 } from "react-native";
 import { TabView } from "react-native-tab-view";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
 
 import HomeScreen from "../screen/HomeScreen";
 import PartyScreen from "../screen/party/PartyScreen";
@@ -21,21 +21,32 @@ import colors from "../utils/colors";
 
 const { width } = Dimensions.get("window");
 
+// Icon mapping with custom assets
+const ICON_MAP = {
+  home: require("../../assets/icons/ic_home.png"),
+  party: require("../../assets/icons/ic_party.png"),
+  live: require("../../assets/icons/ic-live.png"),
+  chat: require("../../assets/icons/ic_chat.png"),
+  profile: require("../../assets/icons/ic_profile.png"),
+};
+
 export default function MainTabsNavigator() {
   const navigation = useNavigation();
   const [index, setIndex] = useState(0);
   
   const allRoutes = [
     { key: "home", title: "Home", icon: "home" },
-    { key: "party", title: "Party", icon: "musical-notes" },
-    { key: "live", title: "Live", icon: "radio", webDisabled: true },
-    { key: "chat", title: "Chat", icon: "chatbubble" },
-    { key: "profile", title: "Profile", icon: "person" },
+    { key: "party", title: "Party", icon: "party" },
+    { key: "live", title: "Live", icon: "live", webDisabled: true },
+    { key: "chat", title: "Chat", icon: "chat" },
+    { key: "profile", title: "Profile", icon: "profile" },
   ];
   
   const [routes] = useState(allRoutes);
-
   const translateX = useRef(new Animated.Value(0)).current;
+  
+  // Pulse animation refs for each tab
+  const pulseAnims = useRef(routes.map(() => new Animated.Value(1))).current;
 
   const renderScene = ({ route }) => {
     switch (route.key) {
@@ -56,6 +67,24 @@ export default function MainTabsNavigator() {
     }
   };
 
+  const triggerPulse = (tabIndex) => {
+    const pulseAnim = pulseAnims[tabIndex];
+    pulseAnim.setValue(1);
+    
+    Animated.sequence([
+      Animated.timing(pulseAnim, {
+        toValue: 0.85,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(pulseAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
   const handleIndexChange = (i) => {
     if (routes[i].key === "live") {
       if (Platform.OS === "web") {
@@ -63,12 +92,21 @@ export default function MainTabsNavigator() {
       }
       return;
     }
+    triggerPulse(i);
     Animated.spring(translateX, {
       toValue: (width / routes.length) * i,
       useNativeDriver: true,
       friction: 8,
     }).start();
     setIndex(i);
+  };
+
+  const handleLivePress = () => {
+    if (Platform.OS !== "web") {
+      const liveIndex = routes.findIndex(r => r.key === "live");
+      triggerPulse(liveIndex);
+      navigation.navigate("LiveNavigator");
+    }
   };
 
   return (
@@ -92,16 +130,21 @@ export default function MainTabsNavigator() {
               <TouchableOpacity
                 key="live"
                 style={[styles.liveButtonWrapper, Platform.OS === "web" && { opacity: 0.5 }]}
-                onPress={() => {
-                  if (Platform.OS !== "web") {
-                    navigation.navigate("LiveNavigator");
-                  }
-                }}
+                onPress={handleLivePress}
                 disabled={Platform.OS === "web"}
               >
-                <View style={styles.liveButton}>
-                  <Ionicons name="radio-outline" size={30} color="#fff" />
-                </View>
+                <Animated.View 
+                  style={[
+                    styles.liveButton,
+                    { transform: [{ scale: pulseAnims[i] }] }
+                  ]}
+                >
+                  <Image
+                    source={ICON_MAP.live}
+                    style={styles.liveIcon}
+                    resizeMode="contain"
+                  />
+                </Animated.View>
                 <Text style={styles.liveLabel}>Live</Text>
               </TouchableOpacity>
             );
@@ -113,12 +156,23 @@ export default function MainTabsNavigator() {
               key={route.key}
               style={styles.tabItem}
               onPress={() => handleIndexChange(i)}
+              activeOpacity={0.8}
             >
-              <Ionicons
-                name={isActive ? route.icon : `${route.icon}-outline`}
-                size={24}
-                color={isActive ? colors.primary : "#999"}
-              />
+              <Animated.View
+                style={{
+                  transform: [{ scale: pulseAnims[i] }],
+                }}
+              >
+                <Image
+                  source={ICON_MAP[route.icon]}
+                  style={[
+                    styles.tabIcon,
+                    { opacity: isActive ? 1 : 0.6 },
+                    { tintColor: isActive ? colors.primary : "#999" },
+                  ]}
+                  resizeMode="contain"
+                />
+              </Animated.View>
               <Text
                 style={[
                   styles.tabLabel,
@@ -146,8 +200,21 @@ const styles = StyleSheet.create({
     borderColor: "#eee",
     elevation: 8,
   },
-  tabItem: { flex: 1, alignItems: "center", justifyContent: "center" },
-  tabLabel: { fontSize: 12, marginTop: 2 },
+  tabItem: { 
+    flex: 1, 
+    alignItems: "center", 
+    justifyContent: "center",
+    paddingTop: 5,
+  },
+  tabIcon: {
+    width: 24,
+    height: 24,
+  },
+  tabLabel: { 
+    fontSize: 12, 
+    marginTop: 4,
+    fontWeight: "500",
+  },
   liveButtonWrapper: {
     flex: 1,
     alignItems: "center",
@@ -165,6 +232,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.6,
     shadowRadius: 10,
     elevation: 6,
+  },
+  liveIcon: {
+    width: 30,
+    height: 30,
   },
   liveLabel: {
     fontSize: 12,
