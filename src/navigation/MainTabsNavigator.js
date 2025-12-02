@@ -207,12 +207,12 @@ const styles = StyleSheet.create({
     paddingTop: 5,
   },
   tabIcon: {
-    width: 24,
-    height: 24,
+    width: 32,
+    height: 32,
   },
   tabLabel: { 
     fontSize: 12, 
-    marginTop: 4,
+    marginTop: 6,
     fontWeight: "500",
   },
   liveButtonWrapper: {
@@ -234,8 +234,8 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   liveIcon: {
-    width: 30,
-    height: 30,
+    width: 36,
+    height: 36,
   },
   liveLabel: {
     fontSize: 12,
